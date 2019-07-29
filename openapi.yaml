@@ -16,6 +16,8 @@ basePath: /v1
 externalDocs:
   description: GitHub Repository
   url: https://github.com/osu-mist/parks-api
+consumes:
+  - application/json
 produces:
   - application/json
 paths:
@@ -23,62 +25,62 @@ paths:
     get:
       summary: List all parks
       tags:
-      - parks
+        - parks
       description: Get all parks
       operationId: getParks
       parameters:
-        - $ref: '#/parameters/authorization'
         - in: query
-          name: Amenities
-          description: Filter by park amenities ("play area", "hiking trails", etc.)
+          name: amenities
+          description: Filter by park amenities (play area, hiking trails, etc.)
           required: false
           type: array
+          collectionFormat: csv
           items:
             type: string
             enum:
-              - "ballfield"
-              - "barbeque grills"
-              - "basketball courts"
-              - "bike paths"
-              - "boat ramps"
-              - "dogs allowed"
-              - "drinking water"
-              - "fishing"
-              - "hiking trails"
-              - "horseshoes"
-              - "natural area"
-              - "offleash dog park"
-              - "open fields"
-              - "picnic shelters"
-              - "picnic tables"
-              - "play area"
-              - "restrooms"
-              - "scenic view point"
-              - "soccer fields"
-              - "tennis courts"
-              - "volleyball"
+              - ballfield
+              - barbeque grills
+              - basketball courts
+              - bike paths
+              - boat ramps
+              - dogs allowed
+              - drinking water
+              - fishing
+              - hiking trails
+              - horseshoes
+              - natural area
+              - offleash dog park
+              - open fields
+              - picnic shelters
+              - picnic tables
+              - play area
+              - restrooms
+              - scenic view point
+              - soccer fields
+              - tennis courts
+              - volleyball
         - in: query
-          name: Park Name
+          name: parkName
           description: Filter parks by name
           required: false
           type: string
         - in: query
-          name: Owner ID
+          name: ownerId
           description: Filter parks by owner ID
           required: false
           type: string
         - in: query
-          name: City
+          name: city
           description: Filter parks by city
           required: false
           type: string
         - in: query
-          name: State
+          name: state
           description: Filter parks by state
           required: false
           type: string
         - in: query
-          name: Zip Code
+          name: zipCode
           description: Filter parks by zip code
           required: false
           type: string
@@ -87,10 +89,6 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/ParksResult'
-        '400':
-          description: Bad request
-          schema:
-            $ref: '#/definitions/ErrorResult'
         '500':
           description: Internal server error
           schema:
@@ -101,13 +99,7 @@ paths:
         - parks
       operationId: createPark
       parameters:
-      - $ref: '#/parameters/authorization'
-      - in: body
-        name: body
-        description: Park object to be added
-        required: true
-        schema:
-          $ref: '#/definitions/PostParkModel'
+      - $ref: '#/parameters/parkBody'
       responses:
         '201':
           description: Successfully created new park
@@ -129,7 +121,6 @@ paths:
       description: Get park by unique ID
       operationId: getParkById
       parameters:
-        - $ref: '#/parameters/authorization'
         - $ref: '#/parameters/parkIdPath'
       responses:
         '200':
@@ -151,15 +142,17 @@ paths:
       description: Update park by unique ID
       operationId: updateParkById
       parameters:
-        - $ref: '#/parameters/authorization'
-        - $ref: '#/parameters/ownerId'
-        - $ref: '#/parameters/ownerPassword'
         - $ref: '#/parameters/parkIdPath'
+        - $ref: '#/parameters/parkBody'
       responses:
         '200':
           description: Successful response
           schema:
             $ref: '#/definitions/ParkResult'
+        '400':
+          description: Incorrect syntax in request, or required fields missing
+          schema:
+            $ref: '#/definitions/ErrorResult'
         '404':
           description: Park resource not found
           schema:
@@ -175,17 +168,10 @@ paths:
       description: Delete park by unique ID
       operationId: deleteParkById
       parameters:
-        - $ref: '#/parameters/authorization'
-        - $ref: '#/parameters/ownerId'
-        - $ref: '#/parameters/ownerPassword'
         - $ref: '#/parameters/parkIdPath'
       responses:
         '204':
           description: Park successfully deleted
-        '400':
-          description: Incorrect syntax in request, or required fields missing
-          schema:
-            $ref: '#/definitions/ErrorResult'
         '404':
           description: Park resource not found
           schema:
@@ -200,22 +186,12 @@ paths:
       tags:
         - owners
       description: Get all park owners
-      operationId: getOwner
-      parameters:
-      - $ref: '#/parameters/authorization'
+      operationId: getOwners
       responses:
         '200':
           description: Successful response
           schema:
             $ref: '#/definitions/OwnersResult'
-        '400':
-          description: Incorrect syntax in request, or required fields missing
-          schema:
-            $ref: '#/definitions/ErrorResult'
-        '404':
-          description: Park resource not found
-          schema:
-            $ref: '#/definitions/ErrorResult'
         '500':
           description: Internal server error
           schema:
@@ -227,22 +203,12 @@ paths:
       description: Post a new park owner
       operationId: postOwner
       parameters:
-      - $ref: '#/parameters/authorization'
-      - in: query
-        name: Name / Organization
-        description: Your name or organization name
-        type: string
-        required: true
-      - in: query
-        name: Password
-        description: Enter a password to access your parks with
-        type: string
-        required: true
+      - $ref: '#/parameters/ownerBody'
       responses:
         '201':
           description: Owner account successfully created
           schema:
-            $ref: '#/definitions/OwnerResultPrivate'
+            $ref: '#/definitions/OwnerResult'
         '400':
           description: Incorrect syntax in request, or required fields missing
           schema:
@@ -264,18 +230,11 @@ paths:
       operationId: getOwnerById
       parameters:
       - $ref: '#/parameters/ownerIdPath'
-      - $ref: '#/parameters/authorization'
-      - $ref: '#/parameters/ownerId'
-      - in: header
-        name: Password
-        description: Password associated with the owner ID
-        type: string
-        required: true
       responses:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/OwnerResultPublic'
+            $ref: '#/definitions/OwnerResult'
         '400':
           description: Incorrect syntax in request, or required fields missing
           schema:
@@ -296,28 +255,12 @@ paths:
       operationId: updateOwnerById
       parameters:
       - $ref: '#/parameters/ownerIdPath'
-      - $ref: '#/parameters/authorization'
-      - $ref: '#/parameters/ownerId'
-      - in: header
-        name: Password
-        description: Password associated with the owner ID
-        type: string
-        required: true
-      - in: query
-        name: New Name / Organization
-        description: Your new name / organization
-        type: string
-        required: false
-      - in: query
-        name: New Password
-        description: Your new password
-        type: string
-        required: false
+      - $ref: '#/parameters/ownerBody'
       responses:
         '200':
           description: Owner successfully updated
           schema:
-            $ref: '#/definitions/OwnerResultPrivate'
+            $ref: '#/definitions/OwnersResult'
         '400':
           description: Incorrect syntax in request, or required fields missing
           schema:
@@ -338,20 +281,9 @@ paths:
       operationId: deleteOwnerById
       parameters:
       - $ref: '#/parameters/ownerIdPath'
-      - $ref: '#/parameters/authorization'
-      - $ref: '#/parameters/ownerId'
-      - in: header
-        name: Password
-        description: Password associated with the owner ID
-        type: string
-        required: true
       responses:
         '204':
           description: Park successfully deleted
-        '400':
-          description: Incorrect syntax in request, or required fields missing
-          schema:
-            $ref: '#/definitions/ErrorResult'
         '404':
           description: Owner resource not found
           schema:
@@ -360,40 +292,33 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/ErrorResult'
-
 parameters:
-  authorization:
-    name: Authorization
-    in: header
-    type: string
-    required: true
-    description: '"Bearer [token]" where [token] is your OAuth2 access token'
-  ownerId:
-    name: ownerId
-    in: header
-    description: ID of park owner
-    required: true
-    type: string
   ownerIdPath:
     in: path
     name: ownerId
     description: ID of owner
     type: string
     required: true
-  ownerPassword:
-    name: ownerPassword
-    in: header
-    description: password for park owner
-    required: true
-    type: string
   parkIdPath:
     name: parkId
     in: path
     description: Unique Park ID
     required: true
     type: string
-  
-
+  parkBody:
+    name: parkBody
+    in: body
+    description: A park body object
+    required: true
+    schema:
+      $ref: '#/definitions/PostParkModel'
+  ownerBody:
+    name: ownerBody
+    in: body
+    description: An owner body object
+    required: true
+    schema:
+      $ref: '#/definitions/PostOwnerModel'
 definitions:
   SelfLink:
     properties:
@@ -402,82 +327,57 @@ definitions:
         example: request_url_here
         format: url
         description: Self-link of current resource
-  OwnerResultPrivate:
-    properties:
-      links:
-        $ref: '#/definitions/SelfLink'
-      data:
-        $ref: '#/definitions/OwnerResourcePrivate'
-  OwnerResultPublic:
-    properties:
-      links:
-        $ref: '#/definitions/SelfLink'
-      data:
-        $ref: '#/definitions/OwnerResourcePublic'
-  OwnersResult:
-    properties:
-      links:
-        $ref: '#/definitions/SelfLink'
-      data:
-        type: array
-        items:
-          $ref: '#/definitions/OwnerResourcePublic'
-  OwnerResourcePublic:
+  OwnerResource:
+    required: [id, type, attributes]
     properties:
       id:
         type: string
-        example: 0001
+        example: '0001'
         description: A unique ID of a park owner
-      attributes:
+      type:
+        type: string
+        description: type of object, should be owner
+        example: owner
+      attributes: &ownerAttributes
+        required: [ownerName]
         properties:
           ownerName:
             type: string
             description: Name of park owner / organization
             example: City of Corvallis
-  OwnerResourcePrivate:
+  PostOwnerModel:
+    required: [type, attributes]
     properties:
-      id:
+      type:
         type: string
-        example: 0001
-        description: A unique ID of a park owner
-      attributes:
-        properties:
-          ownerName:
-            type: string
-            description: Name of park owner / organization
-            example: City of Corvallis
-          ownerPassword:
-            type: string
-            description: Password
-            example: password1234
+        description: type of object, should be owner
+        example: owner
+      attributes: *ownerAttributes
   ParkResource:
     properties:
       id:
         type: string
-        example: 0001
+        example: '0001'
         description: A unique ID of park
-      attributes:
+      type:
+        type: string
+        description: type of object, should be park
+        example: park
+      attributes: &parkAttributes
+        required: [name, location, amenities]
         properties:
           name:
             type: string
             description: Name of Park
             example: Avery Park
-          owner:
-            type: object
-            properties:
-              ownerName:
-                type: string
-                example: City of Corvallis
-              ownerId:
-                type: string
-                example: 1111
           location:
             type: object
+            required: [streetAddress, city, state, zip, latitude, longitude]
             properties:
               streetAddress:
                 type: string
                 description: Park address
-                example: 1200 SW Avery Park Dr.
+                example: '1200 SW Avery Park Dr.'
               city:
                 type: string
                 description: city where the park is located
@@ -485,75 +385,73 @@ definitions:
               state:
                 type: string
                 description: Abbreviation of state where park is located
+                pattern: '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
                 example: OR
               zip:
-                type: string
+                type: integer
                 description: Zip code where park is located
                 example: 97333
               latitude:
-                type: string
+                type: number
+                format: float
                 description: latitude of park
                 example: 44.552283
               longitude:
-                type: string
+                type: number
+                format: float
                 description: longitude of park
                 example: -123.269906
           amenities:
             type: array
             items:
               type: string
-            example: ['play area', 'bike paths']
+            example: [play area, bike paths]
             description: list of amenities at park
+      relationships:
+        type: object
+        properties:
+          data:
+            type: object
+            properties:
+              type:
+                type: string
+                example: owner
+              ownerId:
+                type: string
+                example: '1111'
   PostParkModel:
+    required: [type, attributes]
     properties:
-      attributes:
+      type:
+        type: string
+        description: type of object, should be park
+        example: park
+      attributes: *parkAttributes
+  ErrorObject:
+    properties:
+      status:
+        type: string
+        description: HTTP status code
+        example: '123'
+      title:
+        type: string
+        description: A short, user readable summary of the error
+        example: 'Not Found'
+      code:
+        type: string
+        description: An application-specific error code
+        example: '1234'
+      detail:
+        type: string
+        description: A long description of the error that may contain instance-specific details
+        example: A long description of the error that may contain instance-specific details
+      links:
         properties:
-          name:
+          about:
             type: string
-            description: Name of Park
-            example: Avery Park
-          owner:
-            type: object
-            properties:
-              ownerName:
-                type: string
-                example: City of Corvallis
-              ownerId:
-                type: string
-                example: 1111
-          location:
-            type: object
-            properties:
-              streetAddress:
-                type: string
-                description: Park address
-                example: 1200 SW Avery Park Dr.
-              city:
-                type: string
-                description: city where the park is located
-                example: Corvallis
-              state:
-                type: string
-                description: Abbreviation of state where park is located
-                example: OR
-              zip:
-                type: string
-                description: Zip code where park is located
-                example: 97333
-              latitude:
-                type: string
-                description: latitude of park
-                example: 44.552283
-              longitude:
-                type: string
-                description: longitude of park
-                example: -123.269906
-          amenities:
-            type: array
-            items:
-              type: string
-            example: ['play area', 'bike paths']
-            description: list of amenities at park
+            format: url
+            description: A link to further information about the error
+            example: 'https://developer.oregonstate.edu/documentation/error-reference#1234'
   ParkResult:
     properties:
       links:
@@ -563,36 +461,25 @@ definitions:
   ParksResult:
     properties:
       links:
-        allOf:
-          - $ref: '#/definitions/SelfLink'
+        $ref: '#/definitions/SelfLink'
       data:
         type: array
         items:
           $ref: '#/definitions/ParkResource'
-  ErrorObject:
+  OwnerResult:
     properties:
-      status:
-        type: string
-        description: HTTP status code
-        example: 'error_code'
-      title:
-        type: string
-        description: A short, user readable summary of the error
-        example: Not Found
-      code:
-        type: string
-        description: An application-specific error code
-        example: 'error_code'
-      detail:
-        type: string
-        description: A long description of the error that may contain instance-specific details
       links:
-        properties:
-          about:
-            type: string
-            format: url
-            description: A link to further information about the error
-            example: https://developer.oregonstate.edu/documentation/error-reference#1234
+        $ref: '#/definitions/SelfLink'
+      data:
+        $ref: '#/definitions/OwnerResource'
+  OwnersResult:
+    properties:
+      links:
+        $ref: '#/definitions/SelfLink'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/OwnerResource'
   ErrorResult:
     properties:
       errors:
