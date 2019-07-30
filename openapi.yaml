@@ -31,13 +31,13 @@ paths:
       parameters:
         - in: query
           name: amenities
-          description: Filter by park amenities (play area, hiking trails, etc.)
+          description: Filter parks containing all listed amenities
           required: false
           type: array
           collectionFormat: csv
           items:
             type: string
-            enum:
+            enum: &amenitiesEnum
               - ballfield
               - barbeque grills
               - basketball courts
@@ -79,40 +79,41 @@ paths:
           description: Filter parks by state
           required: false
           type: string
+          pattern: '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
         - in: query
           name: zipCode
           description: Filter parks by zip code
           required: false
-          type: string
+          type: integer
       responses:
         '200':
-          description: Successful response
+          description: Successful Response
           schema:
             $ref: '#/definitions/ParksResult'
+        '400':
+          $ref: '#/responses/400'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
     post:
       summary: Creates a new park
       tags:
         - parks
       operationId: createPark
       parameters:
-      - $ref: '#/parameters/parkBody'
+      - $ref: '#/parameters/parkPostBody'
       responses:
         '201':
-          description: Successfully created new park
-          schema:
-            $ref: '#/definitions/ParkResult'
+          $ref: '#/responses/201'
         '400':
-          description: Invalid park object
+          $ref: '#/responses/400'
+        '404':
+          $ref: '#/responses/404'
+        '409':
+          description: Conflict with id or type
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
   /parks/{parkId}:
     get:
       summary: Lists info for a specific park
@@ -124,17 +125,13 @@ paths:
         - $ref: '#/parameters/parkIdPath'
       responses:
         '200':
-          description: Successful response
+          description: Successful Response
           schema:
             $ref: '#/definitions/ParkResult'
         '404':
-          description: Park resource not found
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/404'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
     patch:
       summary: Update information of a specific park
       tags: 
@@ -143,24 +140,22 @@ paths:
       operationId: updateParkById
       parameters:
         - $ref: '#/parameters/parkIdPath'
-        - $ref: '#/parameters/parkBody'
+        - $ref: '#/parameters/parkPatchBody'
       responses:
         '200':
-          description: Successful response
+          description: Successful Response
           schema:
             $ref: '#/definitions/ParkResult'
         '400':
-          description: Incorrect syntax in request, or required fields missing
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/400'
         '404':
-          description: Park resource not found
+          $ref: '#/responses/404'
+        '409':
+          description: Resource conflict
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
     delete:
       summary: Delete a specific park
       tags: 
@@ -173,13 +168,9 @@ paths:
         '204':
           description: Park successfully deleted
         '404':
-          description: Park resource not found
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/404'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
   /owners:
     get:
       summary: Lists all park owners
@@ -189,13 +180,11 @@ paths:
       operationId: getOwners
       responses:
         '200':
-          description: Successful response
+          description: Successful Response
           schema:
             $ref: '#/definitions/OwnersResult'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
     post:
       summary: Creates a new park owner account
       tags:
@@ -203,24 +192,18 @@ paths:
       description: Post a new park owner
       operationId: postOwner
       parameters:
-      - $ref: '#/parameters/ownerBody'
+      - $ref: '#/parameters/ownerPostBody'
       responses:
         '201':
-          description: Owner account successfully created
-          schema:
-            $ref: '#/definitions/OwnerResult'
+          $ref: '#/responses/201'
         '400':
-          description: Incorrect syntax in request, or required fields missing
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/400'
         '409':
           description: Owner account already exists
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
   /owners/{ownerId}:
     get:
       summary: gets the account of a park owner by ID
@@ -232,21 +215,15 @@ paths:
       - $ref: '#/parameters/ownerIdPath'
       responses:
         '200':
-          description: Successful response
+          description: Successful Response
           schema:
             $ref: '#/definitions/OwnerResult'
         '400':
-          description: Incorrect syntax in request, or required fields missing
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/400'
         '404':
-          description: Owner resource not found
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/404'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
     patch:
       summary: Updates the account of a park owner by ID
       tags:
@@ -255,24 +232,22 @@ paths:
       operationId: updateOwnerById
       parameters:
       - $ref: '#/parameters/ownerIdPath'
-      - $ref: '#/parameters/ownerBody'
+      - $ref: '#/parameters/ownerPatchBody'
       responses:
         '200':
-          description: Owner successfully updated
+          description: Successful Response
           schema:
-            $ref: '#/definitions/OwnersResult'
+            $ref: '#/definitions/OwnerResult'
         '400':
-          description: Incorrect syntax in request, or required fields missing
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/400'
         '404':
-          description: Owner resource not found
+          $ref: '#/responses/404'
+        '409':
+          description: Resource conflict
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
     delete:
       summary: Delete a park owner account by ID
       tags:
@@ -289,9 +264,7 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
+          $ref: '#/responses/500'
 parameters:
   ownerIdPath:
     in: path
@@ -305,20 +278,34 @@ parameters:
     description: Unique Park ID
     required: true
     type: string
-  parkBody:
+  parkPostBody:
     name: parkBody
     in: body
     description: A park body object
     required: true
     schema:
       $ref: '#/definitions/PostParkModel'
-  ownerBody:
-    name: ownerBody
+  parkPatchBody:
+    name: parkBody
+    in: body
+    description: A park body object
+    required: true
+    schema:
+      $ref: '#/definitions/PatchParkModel'
+  ownerPostBody:
+    name: ownerPostBody
     in: body
     description: An owner body object
     required: true
     schema:
       $ref: '#/definitions/PostOwnerModel'
+  ownerPatchBody:
+    name: ownerPatchBody
+    in: body
+    description: An owner body object
+    required: true
+    schema:
+      $ref: '#/definitions/PatchOwnerModel'
 definitions:
   SelfLink:
     properties:
@@ -353,16 +340,35 @@ definitions:
         description: type of object, should be owner
         example: owner
       attributes: *ownerAttributes
+  PatchOwnerModel:
+    required: [id, type]
+    properties:
+      id:
+        type: string
+        example: '0001'
+        description: A unique ID of a park owner
+      type:
+        type: string
+        description: type of object, should be owner
+        example: owner
+      attributes:
+        required: [ownerName]
+        properties:
+          ownerName:
+            type: string
+            description: Name of park owner / organization
+            example: City of Corvallis
   ParkResource:
+    required: [id, type, attributes, relationships]
     properties:
       id:
         type: string
         example: '0001'
         description: A unique ID of park
-      type:
+      type: &parkType
         type: string
         description: type of object, should be park
-        example: park
+        enum: [park]
       attributes: &parkAttributes
         required: [name, location, amenities]
         properties:
@@ -380,7 +386,84 @@ definitions:
                 example: '1200 SW Avery Park Dr.'
               city:
                 type: string
-                description: city where the park is located
+                description: City where the park is located
+                example: Corvallis
+              state:
+                type: string
+                description: Abbreviation of state where park is located
+                pattern: '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
+                example: OR
+              zip:
+                type: integer
+                description: Zip code where park is located
+                example: 97333
+              latitude:
+                type: number
+                format: float
+                description: latitude of park
+                example: 44.552283
+              longitude:
+                type: number
+                format: float
+                description: longitude of park
+                example: -123.269906
+          amenities:
+            type: array
+            enum: *amenitiesEnum
+            items:
+              type: string
+            description: list of amenities at park
+      relationships: &parkRelationships
+        type: object
+        required: [owner]
+        properties:
+          owner:
+            type: object
+            required: [data]
+            properties:
+              data:
+                type: object
+                required: [type, id]
+                properties:
+                  type:
+                    type: string
+                    enum: [owner]
+                  id:
+                    type: string
+                    example: '1111'
+  PostParkModel:
+    required: [type, attributes, relationships]
+    properties:
+      type: *parkType
+      attributes: *parkAttributes
+      relationships: *parkRelationships
+  PatchParkModel:
+    required: [id, type]
+    properties:
+      id:
+        type: string
+        example: '0001'
+        description: A unique ID of park
+      type:
+        type: string
+        description: type of object, should be park
+        enum: [park]
+      attributes:
+        properties:
+          name:
+            type: string
+            description: Name of Park
+            example: Avery Park
+          location:
+            type: object
+            properties:
+              streetAddress:
+                type: string
+                description: Park address
+                example: '1200 SW Avery Park Dr.'
+              city:
+                type: string
+                description: City where the park is located
                 example: Corvallis
               state:
                 type: string
@@ -409,24 +492,22 @@ definitions:
             description: list of amenities at park
       relationships:
         type: object
+        required: [owner]
         properties:
-          data:
+          owner:
             type: object
+            required: [data]
             properties:
-              type:
-                type: string
-                example: owner
-              ownerId:
-                type: string
-                example: '1111'
-  PostParkModel:
-    required: [type, attributes]
-    properties:
-      type:
-        type: string
-        description: type of object, should be park
-        example: park
-      attributes: *parkAttributes
+              data:
+                type: object
+                required: [type, id]
+                properties:
+                  type:
+                    type: string
+                    enum: [owner]
+                  id:
+                    type: string
+                    example: '1111'
   ErrorObject:
     properties:
       status:
@@ -486,3 +567,25 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/ErrorObject'
+responses:
+  '201':
+    description: Successfully created new resource
+    headers:
+      Locations:
+        type: string
+        description: Location of newly created resource
+    schema:
+      $ref: '#/definitions/ParkResult'
+  '400':
+    description: Incorrect syntax in request, or required fields missing
+    schema:
+      $ref: '#/definitions/ErrorResult'
+  '404':
+    description: Resource not found
+    schema:
+      $ref: '#/definitions/ErrorResult'
+  '500':
+    description: Internal server error
+    schema:
+      $ref: '#/definitions/ErrorResult'
+  
