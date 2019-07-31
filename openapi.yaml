@@ -103,13 +103,21 @@ paths:
       - $ref: '#/parameters/parkPostBody'
       responses:
         '201':
-          $ref: '#/responses/201'
+          description: Successfully created new park
+          headers:
+            Location:
+              type: string
+              description: Location of newly created park
+          schema:
+            $ref: '#/definitions/ParkResult'
         '400':
           $ref: '#/responses/400'
         '404':
-          $ref: '#/responses/404'
+          description: Referenced owner does not exist
+          schema:
+            $ref: '#/definitions/ErrorResult'
         '409':
-          description: Conflict with id or type
+          description: Conflict with type
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
@@ -151,7 +159,7 @@ paths:
         '404':
           $ref: '#/responses/404'
         '409':
-          description: Resource conflict
+          description: Invalid type, must be park
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
@@ -195,11 +203,17 @@ paths:
       - $ref: '#/parameters/ownerPostBody'
       responses:
         '201':
-          $ref: '#/responses/201'
+          description: Successfully created new owner
+          headers:
+            Location:
+              type: string
+              description: Location of newly created owner
+          schema:
+            $ref: '#/definitions/OwnerResult'
         '400':
           $ref: '#/responses/400'
         '409':
-          description: Owner account already exists
+          description: invalid type, or ownerName already in use
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
@@ -218,8 +232,6 @@ paths:
           description: Successful Response
           schema:
             $ref: '#/definitions/OwnerResult'
-        '400':
-          $ref: '#/responses/400'
         '404':
           $ref: '#/responses/404'
         '500':
@@ -243,7 +255,7 @@ paths:
         '404':
           $ref: '#/responses/404'
         '409':
-          description: Resource conflict
+          description: id or type can't be changed
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
@@ -269,7 +281,7 @@ parameters:
   ownerIdPath:
     in: path
     name: ownerId
-    description: ID of owner
+    description: Unique Owner ID
     type: string
     required: true
   parkIdPath:
@@ -317,47 +329,40 @@ definitions:
   OwnerResource:
     required: [id, type, attributes]
     properties:
-      id:
+      id: &ownerId
         type: string
         example: '0001'
         description: A unique ID of a park owner
-      type:
+      type: &ownerType
         type: string
         description: type of object, should be owner
-        example: owner
+        enum: [owner]
       attributes: &ownerAttributes
         required: [ownerName]
         properties:
-          ownerName:
+          ownerName: &ownerName
             type: string
             description: Name of park owner / organization
             example: City of Corvallis
   PostOwnerModel:
-    required: [type, attributes]
+    required: [data]
     properties:
-      type:
-        type: string
-        description: type of object, should be owner
-        example: owner
-      attributes: *ownerAttributes
-  PatchOwnerModel:
-    required: [id, type]
-    properties:
-      id:
-        type: string
-        example: '0001'
-        description: A unique ID of a park owner
-      type:
-        type: string
-        description: type of object, should be owner
-        example: owner
-      attributes:
-        required: [ownerName]
+      data:
+        required: [type, attributes]
         properties:
-          ownerName:
-            type: string
-            description: Name of park owner / organization
-            example: City of Corvallis
+          type: *ownerType
+          attributes: *ownerAttributes
+  PatchOwnerModel:
+    required: [data]
+    properties:
+      data:
+        required: [id, type]
+        properties:
+          id: *ownerId
+          type: *ownerType
+          attributes:
+            properties:
+              ownerName: *ownerName
   ParkResource:
     required: [id, type, attributes, relationships]
     properties:
@@ -372,7 +377,7 @@ definitions:
       attributes: &parkAttributes
         required: [name, location, amenities]
         properties:
-          name:
+          name: &parkName
             type: string
             description: Name of Park
             example: Avery Park
@@ -380,34 +385,34 @@ definitions:
             type: object
             required: [streetAddress, city, state, zip, latitude, longitude]
             properties:
-              streetAddress:
+              streetAddress: &streetAddress
                 type: string
                 description: Park address
                 example: '1200 SW Avery Park Dr.'
-              city:
+              city: &city
                 type: string
                 description: City where the park is located
                 example: Corvallis
-              state:
+              state: &state
                 type: string
                 description: Abbreviation of state where park is located
-                pattern: '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
+                pattern: &states '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
                 example: OR
-              zip:
+              zip: &zip
                 type: integer
                 description: Zip code where park is located
                 example: 97333
-              latitude:
+              latitude: &latitude
                 type: number
                 format: float
                 description: latitude of park
                 example: 44.552283
-              longitude:
+              longitude: &longitude
                 type: number
                 format: float
                 description: longitude of park
                 example: -123.269906
-          amenities:
+          amenities: &amenities
             type: array
             enum: *amenitiesEnum
             items:
@@ -432,82 +437,44 @@ definitions:
                     type: string
                     example: '1111'
   PostParkModel:
-    required: [type, attributes, relationships]
+    required: [data]
     properties:
-      type: *parkType
-      attributes: *parkAttributes
-      relationships: *parkRelationships
-  PatchParkModel:
-    required: [id, type]
-    properties:
-      id:
-        type: string
-        example: '0001'
-        description: A unique ID of park
-      type:
-        type: string
-        description: type of object, should be park
-        enum: [park]
-      attributes:
-        properties:
-          name:
-            type: string
-            description: Name of Park
-            example: Avery Park
-          location:
-            type: object
-            properties:
-              streetAddress:
-                type: string
-                description: Park address
-                example: '1200 SW Avery Park Dr.'
-              city:
-                type: string
-                description: City where the park is located
-                example: Corvallis
-              state:
-                type: string
-                description: Abbreviation of state where park is located
-                pattern: '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
-                example: OR
-              zip:
-                type: integer
-                description: Zip code where park is located
-                example: 97333
-              latitude:
-                type: number
-                format: float
-                description: latitude of park
-                example: 44.552283
-              longitude:
-                type: number
-                format: float
-                description: longitude of park
-                example: -123.269906
-          amenities:
-            type: array
-            items:
-              type: string
-            example: [play area, bike paths]
-            description: list of amenities at park
-      relationships:
+      data:
         type: object
-        required: [owner]
+        required: [type, attributes, relationships]
         properties:
-          owner:
-            type: object
-            required: [data]
+          type: *parkType
+          attributes: *parkAttributes
+          relationships: *parkRelationships
+  PatchParkModel:
+    required: [data]
+    properties:
+      data:
+        type: object
+        required: [id, type]
+        properties:
+          id:
+            type: string
+            example: '0001'
+            description: A unique ID of park
+          type:
+            type: string
+            description: type of object, should be park
+            enum: [park]
+          attributes:
             properties:
-              data:
+              name: *parkName
+              location:
                 type: object
-                required: [type, id]
                 properties:
-                  type:
-                    type: string
-                    enum: [owner]
-                  id:
-                    type: string
-                    example: '1111'
+                  streetAddress: *streetAddress
+                  city: *city
+                  state: *state
+                  zip: *zip
+                  latitude: *latitude
+                  longitude: *longitude
+              amenities: *amenities
+          relationships: *parkRelationships
   ErrorObject:
     properties:
       status:
@@ -568,14 +535,6 @@ definitions:
         items:
           $ref: '#/definitions/ErrorObject'
 responses:
-  '201':
-    description: Successfully created new resource
-    headers:
-      Locations:
-        type: string
-        description: Location of newly created resource
-    schema:
-      $ref: '#/definitions/ParkResult'
   '400':
     description: Incorrect syntax in request, or required fields missing
     schema:
@@ -588,4 +547,4 @@ responses:
     description: Internal server error
     schema:
       $ref: '#/definitions/ErrorResult'
-  
+
