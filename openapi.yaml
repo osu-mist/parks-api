@@ -30,12 +30,12 @@ paths:
       operationId: getParks
       parameters:
         - in: query
-          name: amenities
-          description: Filter parks containing all listed amenities
+          name: filter[amenities][all]
+          description: Filter parks containing at least all of the listed amenities
           required: false
           type: array
           collectionFormat: csv
-          items:
+          items: &filterAmenitiesItems
             type: string
             enum: &amenitiesEnum
               - ballfield
@@ -60,28 +60,37 @@ paths:
               - tennis courts
               - volleyball
         - in: query
-          name: parkName
+          name: filter[amenities][oneOf]
+          description: Filter parks containing at least one of the listed amenities
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum: *amenitiesEnum
+        - in: query
+          name: filter[parkName]
           description: Filter parks by name
           required: false
           type: string
         - in: query
-          name: ownerId
+          name: filter[ownerId]
           description: Filter parks by owner ID
           required: false
           type: string
         - in: query
-          name: city
+          name: filter[city]
           description: Filter parks by city
           required: false
           type: string
         - in: query
-          name: state
-          description: Filter parks by state
+          name: filter[state]
+          description: Filter parks by state (two letter abbreviation)
           required: false
           type: string
-          pattern: '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
+          pattern: &states '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
         - in: query
-          name: zipCode
+          name: filter[zipCode]
           description: Filter parks by zip code
           required: false
           type: integer
@@ -159,7 +168,7 @@ paths:
         '404':
           $ref: '#/responses/404'
         '409':
-          description: Invalid type, must be park
+          description: Invalid type, or id does not match path
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
@@ -255,7 +264,7 @@ paths:
         '404':
           $ref: '#/responses/404'
         '409':
-          description: id or type can't be changed
+          description: id and type cannot be changed. ownerName must also be unique.
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
@@ -366,7 +375,7 @@ definitions:
   ParkResource:
     required: [id, type, attributes, relationships]
     properties:
-      id:
+      id: &parkId
         type: string
         example: '0001'
         description: A unique ID of park
@@ -396,7 +405,7 @@ definitions:
               state: &state
                 type: string
                 description: Abbreviation of state where park is located
-                pattern: &states '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
+                pattern: *states
                 example: OR
               zip: &zip
                 type: integer
@@ -453,14 +462,8 @@ definitions:
         type: object
         required: [id, type]
         properties:
-          id:
-            type: string
-            example: '0001'
-            description: A unique ID of park
-          type:
-            type: string
-            description: type of object, should be park
-            enum: [park]
+          id: *parkId
+          type: *parkType
           attributes:
             properties:
               name: *parkName
