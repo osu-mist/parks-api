@@ -29,71 +29,12 @@ paths:
       description: Get all parks
       operationId: getParks
       parameters:
-        - in: query
-          name: filter[amenities][all]
-          description: Filter parks containing at least all of the listed amenities
-          required: false
-          type: array
-          collectionFormat: csv
-          items: &filterAmenitiesItems
-            type: string
-            enum: &amenitiesEnum
-              - ballfield
-              - barbeque grills
-              - basketball courts
-              - bike paths
-              - boat ramps
-              - dogs allowed
-              - drinking water
-              - fishing
-              - hiking trails
-              - horseshoes
-              - natural area
-              - offleash dog park
-              - open fields
-              - picnic shelters
-              - picnic tables
-              - play area
-              - restrooms
-              - scenic view point
-              - soccer fields
-              - tennis courts
-              - volleyball
-        - in: query
-          name: filter[amenities][oneOf]
-          description: Filter parks containing at least one of the listed amenities
-          required: false
-          type: array
-          collectionFormat: csv
-          items:
-            type: string
-            enum: *amenitiesEnum
-        - in: query
-          name: filter[parkName]
-          description: Filter parks by name
-          required: false
-          type: string
-        - in: query
-          name: filter[ownerId]
-          description: Filter parks by owner ID
-          required: false
-          type: string
-        - in: query
-          name: filter[city]
-          description: Filter parks by city
-          required: false
-          type: string
-        - in: query
-          name: filter[state]
-          description: Filter parks by state (two letter abbreviation)
-          required: false
-          type: string
-          pattern: &states '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
-        - in: query
-          name: filter[zipCode]
-          description: Filter parks by zip code
-          required: false
-          type: integer
+        - $ref: '#/parameters/filterAmenitiesAll'
+        - $ref: '#/parameters/filterAmenitiesSome'
+        - $ref: '#/parameters/filterName'
+        - $ref: '#/parameters/filterCity'
+        - $ref: '#/parameters/filterState'
+        - $ref: '#/parameters/filterZip'
       responses:
         '200':
           description: Successful Response
@@ -286,7 +227,97 @@ paths:
             $ref: '#/definitions/ErrorResult'
         '500':
           $ref: '#/responses/500'
+  /owners/{ownerId}/parks:
+    get:
+      summary: get parks by owner ID
+      tags:
+        - owners
+      description: get parks by owner ID
+      operationId: getParksByOwnerId
+      parameters:
+      - $ref: '#/parameters/ownerIdPath'
+      - $ref: '#/parameters/filterAmenitiesAll'
+      - $ref: '#/parameters/filterAmenitiesSome'
+      - $ref: '#/parameters/filterName'
+      - $ref: '#/parameters/filterCity'
+      - $ref: '#/parameters/filterState'
+      - $ref: '#/parameters/filterZip'
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            $ref: '#/definitions/ParksResult'
+        '404':
+          $ref: '#/responses/404'
+        '500':
+          $ref: '#/responses/500'
 parameters:
+  filterAmenitiesAll:
+    in: query
+    name: filter[amenities][all]
+    description: Filter parks containing at least all of the listed amenities
+    required: false
+    type: array
+    collectionFormat: csv
+    items: &filterAmenitiesItems
+      type: string
+      enum: &amenitiesEnum
+        - ballfield
+        - barbeque grills
+        - basketball courts
+        - bike paths
+        - boat ramps
+        - dogs allowed
+        - drinking water
+        - fishing
+        - hiking trails
+        - horseshoes
+        - natural area
+        - offleash dog park
+        - open fields
+        - picnic shelters
+        - picnic tables
+        - play area
+        - restrooms
+        - scenic view point
+        - soccer fields
+        - tennis courts
+        - volleyball
+  filterAmenitiesSome:
+    in: query
+    name: filter[amenities][some]
+    description: Filter parks containing at least one of the listed amenities
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum: *amenitiesEnum
+  filterName:
+    in: query
+    name: filter[name]
+    description: Filter parks by name
+    required: false
+    type: string
+  filterCity:
+    in: query
+    name: filter[city]
+    description: Filter parks by city
+    required: false
+    type: string
+  filterState:
+    in: query
+    name: filter[state]
+    description: Filter parks by state (two letter abbreviation)
+    required: false
+    type: string
+    pattern: &states '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
+  filterZip:
+    in: query
+    name: filter[zip]
+    description: Filter parks by zip code
+    required: false
+    type: integer
   ownerIdPath:
     in: path
     name: ownerId
