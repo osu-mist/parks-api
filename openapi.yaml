@@ -57,7 +57,7 @@ paths:
           headers:
             Location:
               type: string
-              description: Location of newly created park
+              description: Resource location of newly created park
           schema:
             $ref: '#/definitions/ParkResult'
         '400':
@@ -363,7 +363,6 @@ definitions:
     properties:
       self:
         type: string
-        example: request_url_here
         format: url
         description: Self-link of current resource
   OwnerResource:
