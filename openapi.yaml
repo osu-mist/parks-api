@@ -1,190 +1,513 @@
 swagger: '2.0'
 info:
-  title: Express API Skeleton
-  description: Skeleton for Express APIs
+  title: Corvallis Parks API
+  description: an api for the parks of Corvallis, OR
   version: v1
   license:
     name: GNU Affero General Public License Version 3
     url: http://www.gnu.org/licenses/agpl-3.0.en.html
   contact:
-    name: IS Data Architecture Team
-    url: https://is.oregonstate.edu/data-architecture
-    email: isdataarchitecture@oregonstate.edu
+    name: David Kalcic
+    email: kalcicd@oregonstate.edu
 schemes:
   - https
 host: api.oregonstate.edu
 basePath: /v1
 externalDocs:
   description: GitHub Repository
-  url: https://github.com/osu-mist/express-api-skeleton
+  url: https://github.com/osu-mist/parks-api
+consumes:
+  - application/json
 produces:
   - application/json
 paths:
-  /pets:
+  /parks:
     get:
-      summary: List all pets
+      summary: List all parks
       tags:
-        - pets
-      description: Get all pets
-      operationId: getPets
+        - parks
+      description: Get all parks
+      operationId: getParks
       parameters:
-        - $ref: '#/parameters/authorization'
-        - $ref: '#/parameters/pageNumber'
-        - $ref: '#/parameters/pageSize'
-        - in: query
-          name: species
-          description: Search by pet species
-          required: false
-          type: string
+        - $ref: '#/parameters/filterAmenitiesAll'
+        - $ref: '#/parameters/filterAmenitiesSome'
+        - $ref: '#/parameters/filterName'
+        - $ref: '#/parameters/filterCity'
+        - $ref: '#/parameters/filterState'
+        - $ref: '#/parameters/filterZip'
       responses:
         '200':
-          description: Successful response
+          description: Successful Response
           schema:
-            $ref: '#/definitions/PetsResult'
+            $ref: '#/definitions/ParksResult'
         '400':
-          description: Bad request
+          $ref: '#/responses/400'
+        '500':
+          $ref: '#/responses/500'
+    post:
+      summary: Creates a new park
+      tags:
+        - parks
+      operationId: createPark
+      parameters:
+      - $ref: '#/parameters/parkPostBody'
+      responses:
+        '201':
+          description: Successfully created new park
+          headers:
+            Location:
+              type: string
+              description: Resource location of newly created park
+          schema:
+            $ref: '#/definitions/ParkResult'
+        '400':
+          $ref: '#/responses/400'
+        '404':
+          description: Referenced owner does not exist
+          schema:
+            $ref: '#/definitions/ErrorResult'
+        '409':
+          description: Conflict with type
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResult'
-  /pets/{id}:
+          $ref: '#/responses/500'
+  /parks/{parkId}:
     get:
-      summary: Info for a specific pet
+      summary: Lists info for a specific park
       tags:
-        - pets
-      description: Get pet by unique ID
-      operationId: getPetById
+        - parks
+      description: Get park by unique ID
+      operationId: getParkById
       parameters:
-        - $ref: '#/parameters/authorization'
-        - name: id
-          in: path
-          description: Unique Pet ID
-          required: true
-          type: string
+        - $ref: '#/parameters/parkIdPath'
       responses:
         '200':
-          description: Successful response
+          description: Successful Response
           schema:
-            $ref: '#/definitions/PetResult'
+            $ref: '#/definitions/ParkResult'
         '404':
-          description: PetResource not found
+          $ref: '#/responses/404'
+        '500':
+          $ref: '#/responses/500'
+    patch:
+      summary: Update information of a specific park
+      tags: 
+        - parks
+      description: Update park by unique ID
+      operationId: updateParkById
+      parameters:
+        - $ref: '#/parameters/parkIdPath'
+        - $ref: '#/parameters/parkPatchBody'
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            $ref: '#/definitions/ParkResult'
+        '400':
+          $ref: '#/responses/400'
+        '404':
+          $ref: '#/responses/404'
+        '409':
+          description: Invalid type, or id does not match path
           schema:
             $ref: '#/definitions/ErrorResult'
         '500':
-          description: Internal server error
+          $ref: '#/responses/500'
+    delete:
+      summary: Delete a specific park
+      tags: 
+        - parks
+      description: Delete park by unique ID
+      operationId: deleteParkById
+      parameters:
+        - $ref: '#/parameters/parkIdPath'
+      responses:
+        '204':
+          description: Park successfully deleted
+        '404':
+          $ref: '#/responses/404'
+        '500':
+          $ref: '#/responses/500'
+  /owners:
+    get:
+      summary: Lists all park owners
+      tags:
+        - owners
+      description: Get all park owners
+      operationId: getOwners
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            $ref: '#/definitions/OwnersResult'
+        '500':
+          $ref: '#/responses/500'
+    post:
+      summary: Creates a new park owner account
+      tags:
+        - owners
+      description: Post a new park owner
+      operationId: postOwner
+      parameters:
+      - $ref: '#/parameters/ownerPostBody'
+      responses:
+        '201':
+          description: Successfully created new owner
+          headers:
+            Location:
+              type: string
+              description: Location of newly created owner
+          schema:
+            $ref: '#/definitions/OwnerResult'
+        '400':
+          $ref: '#/responses/400'
+        '409':
+          description: invalid type, or ownerName already in use
           schema:
             $ref: '#/definitions/ErrorResult'
+        '500':
+          $ref: '#/responses/500'
+  /owners/{ownerId}:
+    get:
+      summary: gets the account of a park owner by ID
+      tags:
+        - owners
+      description: gets park owner by ID
+      operationId: getOwnerById
+      parameters:
+      - $ref: '#/parameters/ownerIdPath'
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            $ref: '#/definitions/OwnerResult'
+        '404':
+          $ref: '#/responses/404'
+        '500':
+          $ref: '#/responses/500'
+    patch:
+      summary: Updates the account of a park owner by ID
+      tags:
+        - owners
+      description: patch park owner by ID
+      operationId: updateOwnerById
+      parameters:
+      - $ref: '#/parameters/ownerIdPath'
+      - $ref: '#/parameters/ownerPatchBody'
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            $ref: '#/definitions/OwnerResult'
+        '400':
+          $ref: '#/responses/400'
+        '404':
+          $ref: '#/responses/404'
+        '409':
+          description: id and type cannot be changed. ownerName must also be unique.
+          schema:
+            $ref: '#/definitions/ErrorResult'
+        '500':
+          $ref: '#/responses/500'
+    delete:
+      summary: Delete a park owner account by ID
+      tags:
+        - owners
+      description: Delete owner by ID
+      operationId: deleteOwnerById
+      parameters:
+      - $ref: '#/parameters/ownerIdPath'
+      responses:
+        '204':
+          description: Park successfully deleted
+        '404':
+          description: Owner resource not found
+          schema:
+            $ref: '#/definitions/ErrorResult'
+        '500':
+          $ref: '#/responses/500'
+  /owners/{ownerId}/parks:
+    get:
+      summary: get parks by owner ID
+      tags:
+        - owners
+      description: get parks by owner ID
+      operationId: getParksByOwnerId
+      parameters:
+      - $ref: '#/parameters/ownerIdPath'
+      - $ref: '#/parameters/filterAmenitiesAll'
+      - $ref: '#/parameters/filterAmenitiesSome'
+      - $ref: '#/parameters/filterName'
+      - $ref: '#/parameters/filterCity'
+      - $ref: '#/parameters/filterState'
+      - $ref: '#/parameters/filterZip'
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            $ref: '#/definitions/ParksResult'
+        '404':
+          $ref: '#/responses/404'
+        '500':
+          $ref: '#/responses/500'
 parameters:
-  authorization:
-    name: Authorization
-    in: header
+  filterAmenitiesAll:
+    in: query
+    name: filter[amenities][all]
+    description: Filter parks containing at least all of the listed amenities
+    required: false
+    type: array
+    collectionFormat: csv
+    items: &filterAmenitiesItems
+      type: string
+      enum: &amenitiesEnum
+        - ballfield
+        - barbeque grills
+        - basketball courts
+        - bike paths
+        - boat ramps
+        - dogs allowed
+        - drinking water
+        - fishing
+        - hiking trails
+        - horseshoes
+        - natural area
+        - offleash dog park
+        - open fields
+        - picnic shelters
+        - picnic tables
+        - play area
+        - restrooms
+        - scenic view point
+        - soccer fields
+        - tennis courts
+        - volleyball
+  filterAmenitiesSome:
+    in: query
+    name: filter[amenities][some]
+    description: Filter parks containing at least one of the listed amenities
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum: *amenitiesEnum
+  filterName:
+    in: query
+    name: filter[name]
+    description: Filter parks by name
+    required: false
+    type: string
+  filterCity:
+    in: query
+    name: filter[city]
+    description: Filter parks by city
+    required: false
+    type: string
+  filterState:
+    in: query
+    name: filter[state]
+    description: Filter parks by state (two letter abbreviation)
+    required: false
+    type: string
+    pattern: &states '^(?:(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|P[AR]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY]))$'
+  filterZip:
+    in: query
+    name: filter[zip]
+    description: Filter parks by zip code
+    required: false
+    type: integer
+  ownerIdPath:
+    in: path
+    name: ownerId
+    description: Unique Owner ID
     type: string
     required: true
-    description: '"Bearer [token]" where [token] is your OAuth2 access token'
-  pageNumber:
-    name: page[number]
-    in: query
-    type: integer
-    required: false
-    description: Page number of results
-    default: 1
-    minimum: 1
-  pageSize:
-    name: page[size]
-    in: query
-    type: integer
-    required: false
-    description: Number of results to return
-    default: 25
-    maximum: 500
-    minimum: 1
+  parkIdPath:
+    name: parkId
+    in: path
+    description: Unique Park ID
+    required: true
+    type: string
+  parkPostBody:
+    name: parkBody
+    in: body
+    description: A park body object
+    required: true
+    schema:
+      $ref: '#/definitions/PostParkModel'
+  parkPatchBody:
+    name: parkBody
+    in: body
+    description: A park body object
+    required: true
+    schema:
+      $ref: '#/definitions/PatchParkModel'
+  ownerPostBody:
+    name: ownerPostBody
+    in: body
+    description: An owner body object
+    required: true
+    schema:
+      $ref: '#/definitions/PostOwnerModel'
+  ownerPatchBody:
+    name: ownerPatchBody
+    in: body
+    description: An owner body object
+    required: true
+    schema:
+      $ref: '#/definitions/PatchOwnerModel'
 definitions:
-  Meta:
-    properties:
-      totalResults:
-        type: integer
-        description: Total number of results
-        example: 10
-      totalPages:
-        type: integer
-        description: Total number of pages
-        example: 10
-      currentPageNumber:
-        type: integer
-        description: Page number of the returned results
-        example: 1
-      currentPageSize:
-        type: integer
-        description: Number of results per page
-        example: 25
   SelfLink:
     properties:
       self:
         type: string
         format: url
         description: Self-link of current resource
-  PaginationLinks:
+  OwnerResource:
+    required: [id, type, attributes]
     properties:
-      first:
+      id: &ownerId
         type: string
-        format: url
-        description: The first page of data
-      last:
+        example: '0001'
+        description: A unique ID of a park owner
+      type: &ownerType
         type: string
-        format: url
-        description: The last page of data
-      prev:
-        type: string
-        format: url
-        description: The previous page of data
-      next:
-        type: string
-        format: url
-        description: The next page of data
-  PetResource:
-    properties:
-      id:
-        type: string
-        description: A unique ID of pet
-      type:
-        type: string
-        enum: [pet]
-      links:
-        $ref: '#/definitions/SelfLink'
-      attributes:
+        description: type of object, should be owner
+        enum: [owner]
+      attributes: &ownerAttributes
+        required: [ownerName]
         properties:
-          name:
+          ownerName: &ownerName
             type: string
-            description: Name of pet
-            example: Hedwig
+            description: Name of park owner / organization
+            example: City of Corvallis
+  PostOwnerModel:
+    required: [data]
+    properties:
+      data:
+        required: [type, attributes]
+        properties:
+          type: *ownerType
+          attributes: *ownerAttributes
+  PatchOwnerModel:
+    required: [data]
+    properties:
+      data:
+        required: [id, type]
+        properties:
+          id: *ownerId
+          type: *ownerType
+          attributes:
+            properties:
+              ownerName: *ownerName
+  ParkResource:
+    required: [id, type, attributes, relationships]
+    properties:
+      id: &parkId
+        type: string
+        example: '0001'
+        description: A unique ID of park
+      type: &parkType
+        type: string
+        description: type of object, should be park
+        enum: [park]
+      attributes: &parkAttributes
+        required: [name, location, amenities]
+        properties:
+          name: &parkName
+            type: string
+            description: Name of Park
+            example: Avery Park
+          location:
+            type: object
+            required: [streetAddress, city, state, zip, latitude, longitude]
+            properties:
+              streetAddress: &streetAddress
+                type: string
+                description: Park address
+                example: '1200 SW Avery Park Dr.'
+              city: &city
+                type: string
+                description: City where the park is located
+                example: Corvallis
+              state: &state
+                type: string
+                description: Abbreviation of state where park is located
+                pattern: *states
+                example: OR
+              zip: &zip
+                type: integer
+                description: Zip code where park is located
+                example: 97333
+              latitude: &latitude
+                type: number
+                format: float
+                description: latitude of park
+                example: 44.552283
+              longitude: &longitude
+                type: number
+                format: float
+                description: longitude of park
+                example: -123.269906
+          amenities: &amenities
+            type: array
+            enum: *amenitiesEnum
+            items:
+              type: string
+            description: list of amenities at park
+      relationships: &parkRelationships
+        type: object
+        required: [owner]
+        properties:
           owner:
-            type: string
-            description: Name of owner
-            example: Harry Potter
-          species:
-            type: string
-            description: Species of pet
-            example: Owl
-  PetResult:
+            type: object
+            required: [data]
+            properties:
+              data:
+                type: object
+                required: [type, id]
+                properties:
+                  type:
+                    type: string
+                    enum: [owner]
+                  id:
+                    type: string
+                    example: '1111'
+  PostParkModel:
+    required: [data]
     properties:
-      links:
-        $ref: '#/definitions/SelfLink'
       data:
-        $ref: '#/definitions/PetResource'
-  PetsResult:
+        type: object
+        required: [type, attributes, relationships]
+        properties:
+          type: *parkType
+          attributes: *parkAttributes
+          relationships: *parkRelationships
+  PatchParkModel:
+    required: [data]
     properties:
-      links:
-        allOf:
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/PaginationLinks'
-      meta:
-        $ref: '#/definitions/Meta'
       data:
-        type: array
-        items:
-          $ref: '#/definitions/PetResource'
+        type: object
+        required: [id, type]
+        properties:
+          id: *parkId
+          type: *parkType
+          attributes:
+            properties:
+              name: *parkName
+              location:
+                type: object
+                properties:
+                  streetAddress: *streetAddress
+                  city: *city
+                  state: *state
+                  zip: *zip
+                  latitude: *latitude
+                  longitude: *longitude
+              amenities: *amenities
+          relationships: *parkRelationships
   ErrorObject:
     properties:
       status:
@@ -194,7 +517,7 @@ definitions:
       title:
         type: string
         description: A short, user readable summary of the error
-        example: Not Found
+        example: 'Not Found'
       code:
         type: string
         description: An application-specific error code
@@ -202,16 +525,59 @@ definitions:
       detail:
         type: string
         description: A long description of the error that may contain instance-specific details
+        example: A long description of the error that may contain instance-specific details
       links:
         properties:
           about:
             type: string
             format: url
             description: A link to further information about the error
-            example: https://developer.oregonstate.edu/documentation/error-reference#1234
+            example: 'https://developer.oregonstate.edu/documentation/error-reference#1234'
+  ParkResult:
+    properties:
+      links:
+        $ref: '#/definitions/SelfLink'
+      data:
+        $ref: '#/definitions/ParkResource'
+  ParksResult:
+    properties:
+      links:
+        $ref: '#/definitions/SelfLink'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ParkResource'
+  OwnerResult:
+    properties:
+      links:
+        $ref: '#/definitions/SelfLink'
+      data:
+        $ref: '#/definitions/OwnerResource'
+  OwnersResult:
+    properties:
+      links:
+        $ref: '#/definitions/SelfLink'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/OwnerResource'
   ErrorResult:
     properties:
       errors:
         type: array
         items:
           $ref: '#/definitions/ErrorObject'
+responses:
+  '400':
+    description: Incorrect syntax in request, or required fields missing
+    schema:
+      $ref: '#/definitions/ErrorResult'
+  '404':
+    description: Resource not found
+    schema:
+      $ref: '#/definitions/ErrorResult'
+  '500':
+    description: Internal server error
+    schema:
+      $ref: '#/definitions/ErrorResult'
+
