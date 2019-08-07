@@ -8,11 +8,11 @@ const { openapi } = appRoot.require('utils/load-openapi');
 const { paginate } = appRoot.require('utils/paginator');
 const { apiBaseUrl, resourcePathLink, paramsLink } = appRoot.require('utils/uri-builder');
 
-const petResourceProp = openapi.definitions.PetResource.properties;
-const petResourceType = petResourceProp.type.enum[0];
-const petResourceKeys = _.keys(petResourceProp.attributes.properties);
-const petResourcePath = 'pets';
-const petResourceUrl = resourcePathLink(apiBaseUrl, petResourcePath);
+const parkResourceProp = openapi.definitions.ParkResource.properties;
+const parkResourceType = parkResourceProp.type.enum[0];
+const parkResourceKeys = _.keys(parkResourceProp.attributes.properties);
+const parkResourcePath = 'parks';
+const parkResourceUrl = resourcePathLink(apiBaseUrl, parkResourcePath);
 
 /**
  * The column name getting from database is usually UPPER_CASE.
@@ -20,18 +20,18 @@ const petResourceUrl = resourcePathLink(apiBaseUrl, petResourcePath);
  * UPPER_CASE so that the serializer can correctly match the corresponding columns
  * from the raw data rows.
  */
-_.forEach(petResourceKeys, (key, index) => {
-  petResourceKeys[index] = decamelize(key).toUpperCase();
+_.forEach(parkResourceKeys, (key, index) => {
+  parkResourceKeys[index] = decamelize(key).toUpperCase();
 });
 
 /**
- * @summary Serialize petResources to JSON API
+ * @summary Serialize parkResources to JSON API
  * @function
- * @param {[Object]} rawPets Raw data rows from data source
+ * @param {[Object]} rawParks Raw data rows from data source
  * @param {Object} query Query parameters
- * @returns {Object} Serialized petResources object
+ * @returns {Object} Serialized parkResources object
  */
-const serializePets = (rawPets, query) => {
+const serializeParks = (rawParks, query) => {
   /**
    * Add pagination links and meta information to options if pagination is enabled
    */
@@ -40,46 +40,46 @@ const serializePets = (rawPets, query) => {
     number: query['page[number]'],
   };
 
-  const pagination = paginate(rawPets, pageQuery);
-  pagination.totalResults = rawPets.length;
-  rawPets = pagination.paginatedRows;
+  const pagination = paginate(rawParks, pageQuery);
+  pagination.totalResults = rawParks.length;
+  rawParks = pagination.paginatedRows;
 
-  const topLevelSelfLink = paramsLink(petResourceUrl, query);
+  const topLevelSelfLink = paramsLink(parkResourceUrl, query);
   const serializerArgs = {
     identifierField: 'ID',
-    resourceKeys: petResourceKeys,
+    resourceKeys: parkResourceKeys,
     pagination,
-    resourcePath: petResourcePath,
+    resourcePath: parkResourcePath,
     topLevelSelfLink,
     query: _.omit(query, 'page[size]', 'page[number]'),
     enableDataLinks: true,
   };
 
   return new JsonApiSerializer(
-    petResourceType,
+    parkResourceType,
     serializerOptions(serializerArgs),
-  ).serialize(rawPets);
+  ).serialize(rawParks);
 };
 
 /**
- * @summary Serialize petResource to JSON API
+ * @summary Serialize parkResource to JSON API
  * @function
- * @param {Object} rawPet Raw data row from data source
- * @returns {Object} Serialized petResource object
+ * @param {Object} rawPark Raw data row from data source
+ * @returns {Object} Serialized parkResource object
  */
-const serializePet = (rawPet) => {
-  const topLevelSelfLink = resourcePathLink(petResourceUrl, rawPet.ID);
+const serializePark = (rawPark) => {
+  const topLevelSelfLink = resourcePathLink(parkResourceUrl, rawPark.ID);
   const serializerArgs = {
     identifierField: 'ID',
-    resourceKeys: petResourceKeys,
-    resourcePath: petResourcePath,
+    resourceKeys: parkResourceKeys,
+    resourcePath: parkResourcePath,
     topLevelSelfLink,
     enableDataLinks: true,
   };
 
   return new JsonApiSerializer(
-    petResourceType,
+    parkResourceType,
     serializerOptions(serializerArgs),
-  ).serialize(rawPet);
+  ).serialize(rawPark);
 };
-module.exports = { serializePets, serializePet };
+module.exports = { serializeParks, serializePark };
