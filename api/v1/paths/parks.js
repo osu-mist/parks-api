@@ -21,12 +21,11 @@ const get = async (req, res) => {
  */
 const post = async (req, res) => {
   try {
-    const result = await parksDao.getParks(req.query);
+    const result = await parksDao.postParks(req.query);
     return res.send(result);
   } catch (err) {
     return errorHandler(res, err);
   }
 };
-
 
 module.exports = { get, post };

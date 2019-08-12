@@ -1,11 +1,9 @@
 const appRoot = require('app-root-path');
-const decamelize = require('decamelize');
 const JsonApiSerializer = require('jsonapi-serializer').Serializer;
 const _ = require('lodash');
 
 const { serializerOptions } = appRoot.require('utils/jsonapi');
 const { openapi } = appRoot.require('utils/load-openapi');
-const { paginate } = appRoot.require('utils/paginator');
 const { apiBaseUrl, resourcePathLink, paramsLink } = appRoot.require('utils/uri-builder');
 
 const parkResourceProp = openapi.definitions.ParkResource.properties;
@@ -14,15 +12,49 @@ const parkResourceKeys = _.keys(parkResourceProp.attributes.properties);
 const parkResourcePath = 'parks';
 const parkResourceUrl = resourcePathLink(apiBaseUrl, parkResourcePath);
 
-/**
- * The column name getting from database is usually UPPER_CASE.
- * This block of code is to make the camelCase keys defined in openapi.yaml be
- * UPPER_CASE so that the serializer can correctly match the corresponding columns
- * from the raw data rows.
- */
-_.forEach(parkResourceKeys, (key, index) => {
-  parkResourceKeys[index] = decamelize(key).toUpperCase();
-});
+const getAmenitiesArray = (rawPark) => {
+  const amenitiesArray = [];
+  const listOfAmenities = ['ballfield', 'bbq', 'basketball', 'bikePaths',
+    'boatRamps', 'dogsAllowed', 'drinkingWater', 'fishing', 'hiking',
+    'horseshoes', 'naturalArea', 'dogPark', 'fields', 'shelters', 'tables',
+    'playArea', 'restrooms', 'scenicView', 'soccer', 'tennis', 'volleyball',
+  ];
+  let i = 0;
+  for (i; i < listOfAmenities.length; i += 1) {
+    const amenity = listOfAmenities[i];
+    if (rawPark[amenity] === '1') {
+      amenitiesArray.push(amenity);
+    }
+  }
+  return amenitiesArray;
+};
+
+const structuredPark = (rawPark) => {
+  const locationInfo = {
+    streetAddress: rawPark.streetAddress,
+    city: rawPark.city,
+    state: rawPark.state,
+    zip: rawPark.zip,
+    latitude: rawPark.latitude,
+    longitude: rawPark.longitude,
+  };
+  return {
+    id: rawPark.id,
+    name: rawPark.name,
+    location: locationInfo,
+    amenities: getAmenitiesArray(rawPark),
+  };
+};
+
+const structuredParks = (rawParks) => {
+  const parks = [];
+  let index = 0;
+  while (rawParks[index]) {
+    parks[index] = structuredPark(rawParks[index]);
+    index += 1;
+  }
+  return parks;
+};
 
 /**
  * @summary Serialize parkResources to JSON API
@@ -32,33 +64,18 @@ _.forEach(parkResourceKeys, (key, index) => {
  * @returns {Object} Serialized parkResources object
  */
 const serializeParks = (rawParks, query) => {
-  /**
-   * Add pagination links and meta information to options if pagination is enabled
-   */
-  const pageQuery = {
-    size: query['page[size]'],
-    number: query['page[number]'],
-  };
-
-  const pagination = paginate(rawParks, pageQuery);
-  pagination.totalResults = rawParks.length;
-  rawParks = pagination.paginatedRows;
-
   const topLevelSelfLink = paramsLink(parkResourceUrl, query);
   const serializerArgs = {
-    identifierField: 'ID',
+    identifierField: 'id',
     resourceKeys: parkResourceKeys,
-    pagination,
     resourcePath: parkResourcePath,
     topLevelSelfLink,
-    query: _.omit(query, 'page[size]', 'page[number]'),
     enableDataLinks: true,
   };
-
   return new JsonApiSerializer(
     parkResourceType,
     serializerOptions(serializerArgs),
-  ).serialize(rawParks);
+  ).serialize(structuredParks(rawParks));
 };
 
 /**
@@ -68,9 +85,9 @@ const serializeParks = (rawParks, query) => {
  * @returns {Object} Serialized parkResource object
  */
 const serializePark = (rawPark) => {
-  const topLevelSelfLink = resourcePathLink(parkResourceUrl, rawPark.ID);
+  const topLevelSelfLink = resourcePathLink(parkResourceUrl, rawPark.id);
   const serializerArgs = {
-    identifierField: 'ID',
+    identifierField: 'id',
     resourceKeys: parkResourceKeys,
     resourcePath: parkResourcePath,
     topLevelSelfLink,
