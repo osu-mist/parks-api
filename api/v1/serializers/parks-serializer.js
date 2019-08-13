@@ -19,8 +19,7 @@ const getAmenitiesArray = (rawPark) => {
     'horseshoes', 'naturalArea', 'dogPark', 'fields', 'shelters', 'tables',
     'playArea', 'restrooms', 'scenicView', 'soccer', 'tennis', 'volleyball',
   ];
-  let i = 0;
-  for (i; i < listOfAmenities.length; i += 1) {
+  for (let i = 0; i < listOfAmenities.length; i += 1) {
     const amenity = listOfAmenities[i];
     if (rawPark[amenity] === '1') {
       amenitiesArray.push(amenity);
@@ -48,10 +47,8 @@ const structuredPark = (rawPark) => {
 
 const structuredParks = (rawParks) => {
   const parks = [];
-  let index = 0;
-  while (rawParks[index]) {
-    parks[index] = structuredPark(rawParks[index]);
-    index += 1;
+  for (let i = 0; i < rawParks.length; i += 1) {
+    parks[i] = structuredPark(rawParks[i]);
   }
   return parks;
 };
@@ -97,6 +94,6 @@ const serializePark = (rawPark) => {
   return new JsonApiSerializer(
     parkResourceType,
     serializerOptions(serializerArgs),
-  ).serialize(rawPark);
+  ).serialize(structuredPark(rawPark));
 };
 module.exports = { serializeParks, serializePark };
