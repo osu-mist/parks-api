@@ -1,5 +1,4 @@
 const appRoot = require('app-root-path');
-// const config = require('config');
 const _ = require('lodash');
 
 const { serializeParks, serializePark } = require('../../serializers/parks-serializer');
@@ -44,17 +43,16 @@ const sql = `
   WHERE 1=1
 `;
 
-// function removes 'filter', '[', and ']' from parameter names to be made sql-readable
-function tidyKeyName(keyName) {
+// removes 'filter', '[', and ']' from parameter names to be made sql-readable
+const tidyKeyName = (keyName) => {
   const filterIndex = keyName.indexOf('filter');
   if (filterIndex !== -1) {
     keyName = keyName.slice(filterIndex + 6);
   }
   keyName = keyName.split('[').join('');
   keyName = keyName.split(']').join('');
-  const newKeyName = keyName;
-  return newKeyName;
-}
+  return keyName;
+};
 
 /**
  * @summary Return a list of parks
@@ -98,8 +96,7 @@ const getParks = async (queries) => {
  */
 const getParkById = async (id) => {
   const connection = await conn.getConnection();
-  console.log('id as integer:', _.toInteger(id));
-  if (_.toInteger(id) === 0 && id !== '0') {
+  if (_.toInteger(id) === 0) {
     return undefined;
   }
   const sqlParams = {
@@ -125,7 +122,7 @@ const getParkById = async (id) => {
   }
 };
 
-/*
+/* not implemented yet
 const postParks = async () => {
   const connection = await conn.getConnection();
   try {

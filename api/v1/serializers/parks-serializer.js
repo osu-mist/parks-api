@@ -9,6 +9,7 @@ const { apiBaseUrl, resourcePathLink, paramsLink } = appRoot.require('utils/uri-
 const parkResourceProp = openapi.definitions.ParkResource.properties;
 const parkResourceType = parkResourceProp.type.enum[0];
 const parkResourceKeys = _.keys(parkResourceProp.attributes.properties);
+parkResourceKeys.push('owner'); // for relationships to work correctly
 const parkResourcePath = 'parks';
 const parkResourceUrl = resourcePathLink(apiBaseUrl, parkResourcePath);
 
@@ -37,11 +38,16 @@ const structuredPark = (rawPark) => {
     latitude: rawPark.latitude,
     longitude: rawPark.longitude,
   };
+  const ownerInfo = {
+    ownerId: rawPark.ownerId,
+    type: 'owner',
+  };
   return {
     id: rawPark.id,
     name: rawPark.name,
     location: locationInfo,
     amenities: getAmenitiesArray(rawPark),
+    owner: ownerInfo,
   };
 };
 
@@ -90,7 +96,6 @@ const serializePark = (rawPark) => {
     topLevelSelfLink,
     enableDataLinks: true,
   };
-
   return new JsonApiSerializer(
     parkResourceType,
     serializerOptions(serializerArgs),

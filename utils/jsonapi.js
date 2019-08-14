@@ -15,6 +15,9 @@ const serializerOptions = (serializerArgs) => {
   const options = {
     pluralizeType: false,
     attributes: resourceKeys,
+    owner: {
+      ref: 'ownerId',
+    },
     id: identifierField,
     keyForAttribute: keyForAttribute || 'camelCase',
     topLevelLinks: { self: topLevelSelfLink },
