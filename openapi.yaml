@@ -263,25 +263,25 @@ parameters:
       type: string
       enum: &amenitiesEnum
         - ballfield
-        - barbeque grills
-        - basketball courts
-        - bike paths
-        - boat ramps
-        - dogs allowed
-        - drinking water
+        - barbequeGrills
+        - basketballCourts
+        - bikePaths
+        - boatRamps
+        - dogsAllowed
+        - drinkingWater
         - fishing
-        - hiking trails
+        - hikingTrails
         - horseshoes
-        - natural area
-        - offleash dog park
-        - open fields
-        - picnic shelters
-        - picnic tables
-        - play area
+        - naturalArea
+        - offleashDogPark
+        - openFields
+        - picnicShelters
+        - picnicTables
+        - playArea
         - restrooms
-        - scenic view point
-        - soccer fields
-        - tennis courts
+        - scenicViewPoint
+        - soccerFields
+        - tennisCourts
         - volleyball
   filterAmenitiesSome:
     in: query

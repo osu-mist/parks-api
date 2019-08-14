@@ -7,7 +7,6 @@ const { openapi } = appRoot.require('utils/load-openapi');
 const getParameters = openapi.paths['/parks'].get.parameters;
 
 const conn = appRoot.require('api/v1/db/oracledb/connection');
-
 const sql = `
   SELECT ID AS "id",
   NAME AS "name",
@@ -19,31 +18,31 @@ const sql = `
   LONGITUDE AS "longitude",
   OWNER_ID AS "ownerId",
   BALLFIELD AS "ballfield",
-  BBQ AS "bbq",
-  BASKETBALL AS "basketball",
+  BARBEQUE_GRILLS AS "barbequeGrills",
+  BASKETBALL_COURTS AS "basketballCourts",
   BIKE_PATHS AS "bikePaths",
   BOAT_RAMPS AS "boatRamps",
   DOGS_ALLOWED AS "dogsAllowed",
   DRINKING_WATER AS "drinkingWater",
   FISHING AS "fishing",
-  HIKING AS "hiking",
+  HIKING_TRAILS AS "hikingTrails",
   HORSESHOES AS "horseshoes",
   NATURAL_AREA AS "naturalArea",
-  DOG_PARK AS "dogPark",
-  FIELDS AS "fields",
-  SHELTERS AS "shelters",
-  TABLES AS "tables",
+  OFFLEASH_DOG_PARK AS "offleashDogPark",
+  OPEN_FIELDS AS "openFields",
+  PICNIC_SHELTERS AS "picnicShelters",
+  PICNIC_TABLES AS "picnicTables",
   PLAY_AREA AS "playArea",
   RESTROOMS AS "restrooms",
-  SCENIC_VIEW AS "scenicView",
-  SOCCER AS "soccer",
-  TENNIS AS "tennis",
+  SCENIC_VIEW_POINT AS "scenicViewPoint",
+  SOCCER_FIELDS AS "soccerFields",
+  TENNIS_COURTS AS "tennisCourts",
   VOLLEYBALL AS "volleyball"
   FROM PARKS
-  WHERE 1=1
+  WHERE 1 = 1
 `;
 
-// removes 'filter', '[', and ']' from parameter names to be made sql-readable
+// removes 'filter', '[', and ']' from parameter names to match sql column names
 const tidyKeyName = (keyName) => {
   const filterIndex = keyName.indexOf('filter');
   if (filterIndex !== -1) {
@@ -52,6 +51,23 @@ const tidyKeyName = (keyName) => {
   keyName = keyName.split('[').join('');
   keyName = keyName.split(']').join('');
   return keyName;
+};
+
+const parseAmenities = (amenitiesArray, mode) => {
+  const amenitiesEnum = openapi.parameters.filterAmenitiesAll.items.enum;
+  let sqlParams = '';
+  for (let i = 0; i < _.size(amenitiesArray); i += 1) {
+    const sqlAmenity = _.snakeCase(amenitiesArray[i]).toUpperCase();
+    if (amenitiesEnum.includes(amenitiesArray[i])) {
+      if (i === 0) {
+        sqlParams = `${sqlParams} ${sqlAmenity} = 1`;
+      } else {
+        sqlParams = `${sqlParams} ${mode === 'all' ? 'AND' : 'OR'} ${sqlAmenity} = 1`;
+      }
+    }
+  }
+  sqlParams = `AND (${sqlParams})`;
+  return sqlParams;
 };
 
 /**
@@ -63,21 +79,25 @@ const getParks = async (queries) => {
   const connection = await conn.getConnection();
   const sqlParams = {};
 
-  // iterate through parameters and add parameters in request to the sql query
+  // add parameters in request to the sql query not including amenities filters
   _.forEach(getParameters, (key) => {
     if (queries[key.name]) {
       const newKeyName = tidyKeyName(key.name);
-      sqlParams[newKeyName] = queries[key.name];
+      if (!newKeyName.includes('amenities')) {
+        sqlParams[newKeyName] = queries[key.name];
+      }
     }
   });
-
   const queryParams = `
+    ${queries['filter[amenities][some]'] ? parseAmenities(queries['filter[amenities][some]'], 'some') : ''}
+    ${queries['filter[amenities][all]'] ? parseAmenities(queries['filter[amenities][all]'], 'all') : ''}
     ${sqlParams.name ? 'AND NAME = :name' : ''}
     ${sqlParams.city ? 'AND CITY = :city' : ''}
     ${sqlParams.state ? 'AND STATE = :state' : ''}
     ${sqlParams.zip ? 'AND ZIP = :zip' : ''}
   `;
   const sqlQuery = sql + queryParams;
+  console.log('sqlQuery:', sqlQuery);
   try {
     const { rows } = await connection.execute(sqlQuery, sqlParams);
     const serializedParks = serializeParks(rows, queries);
