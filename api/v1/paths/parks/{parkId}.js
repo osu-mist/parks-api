@@ -9,8 +9,8 @@ const { errorBuilder, errorHandler } = appRoot.require('errors/errors');
  */
 const get = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await parksDao.getParkById(id);
+    const { parkId } = req.params;
+    const result = await parksDao.getParkById(parkId);
     if (!result) {
       errorBuilder(res, 404, 'A park with the specified ID was not found.');
     } else {
@@ -26,8 +26,8 @@ const get = async (req, res) => {
  */
 const patch = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await parksDao.getParkById(id);
+    const { parkId } = req.params;
+    const result = await parksDao.getParkById(parkId);
     if (!result) {
       errorBuilder(res, 404, 'A park with the specified ID was not found.');
     } else {
@@ -43,8 +43,8 @@ const patch = async (req, res) => {
  */
 const deletePark = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await parksDao.getParkById(id);
+    const { parkId } = req.params;
+    const result = await parksDao.getParkById(parkId);
     if (!result) {
       errorBuilder(res, 404, 'A park with the specified ID was not found.');
     } else {

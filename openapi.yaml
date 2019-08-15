@@ -329,8 +329,7 @@ parameters:
     in: path
     description: Unique Park ID
     required: true
-    type: integer
-    # pattern: '1'
+    type: string
   parkPostBody:
     name: parkBody
     in: body

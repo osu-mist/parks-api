@@ -105,7 +105,6 @@ const getParks = async (queries) => {
  *                            is not found
  */
 const getParkById = async (id) => {
-  const connection = await conn.getConnection();
   const sqlParams = {
     parkId: id,
   };
@@ -113,6 +112,7 @@ const getParkById = async (id) => {
     AND ID = :parkId
   `;
   const sqlQuery = `${sql}${queryParams}`;
+  const connection = await conn.getConnection();
   try {
     const { rows } = await connection.execute(sqlQuery, sqlParams);
     if (_.isEmpty(rows)) {
