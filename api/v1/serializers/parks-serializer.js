@@ -14,30 +14,13 @@ const parkResourcePath = 'parks';
 const parkResourceUrl = resourcePathLink(apiBaseUrl, parkResourcePath);
 
 const getAmenitiesArray = (rawPark) => {
-  const amenitiesArray = [];
-  const listOfAmenities = ['ballfield', 'bbq', 'basketball', 'bikePaths',
-    'boatRamps', 'dogsAllowed', 'drinkingWater', 'fishing', 'hiking',
-    'horseshoes', 'naturalArea', 'dogPark', 'fields', 'shelters', 'tables',
-    'playArea', 'restrooms', 'scenicView', 'soccer', 'tennis', 'volleyball',
-  ];
-  for (let i = 0; i < listOfAmenities.length; i += 1) {
-    const amenity = listOfAmenities[i];
-    if (rawPark[amenity] === '1') {
-      amenitiesArray.push(amenity);
-    }
-  }
+  const listOfAmenities = openapi.parameters.filterAmenitiesAll.items.enum;
+  const amenitiesArray = _.filter(listOfAmenities, value => rawPark[value] === '1');
   return amenitiesArray;
 };
 
 const structuredPark = (rawPark) => {
-  const locationInfo = {
-    streetAddress: rawPark.streetAddress,
-    city: rawPark.city,
-    state: rawPark.state,
-    zip: rawPark.zip,
-    latitude: rawPark.latitude,
-    longitude: rawPark.longitude,
-  };
+  const locationInfo = _.pick(rawPark, ['streetAddress', 'city', 'state', 'zip', 'latitude', 'longitude']);
   const ownerInfo = {
     ownerId: rawPark.ownerId,
     type: 'owner',
@@ -52,10 +35,7 @@ const structuredPark = (rawPark) => {
 };
 
 const structuredParks = (rawParks) => {
-  const parks = [];
-  for (let i = 0; i < rawParks.length; i += 1) {
-    parks[i] = structuredPark(rawParks[i]);
-  }
+  const parks = _.map(rawParks, structuredPark);
   return parks;
 };
 

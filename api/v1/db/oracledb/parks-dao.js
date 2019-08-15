@@ -1,12 +1,12 @@
 const appRoot = require('app-root-path');
 const _ = require('lodash');
 
+const conn = appRoot.require('api/v1/db/oracledb/connection');
+const { openapi } = appRoot.require('utils/load-openapi');
 const { serializeParks, serializePark } = require('../../serializers/parks-serializer');
 
-const { openapi } = appRoot.require('utils/load-openapi');
 const getParameters = openapi.paths['/parks'].get.parameters;
 
-const conn = appRoot.require('api/v1/db/oracledb/connection');
 const sql = `
   SELECT ID AS "id",
   NAME AS "name",
@@ -44,12 +44,7 @@ const sql = `
 
 // removes 'filter', '[', and ']' from parameter names to match sql column names
 const tidyKeyName = (keyName) => {
-  const filterIndex = keyName.indexOf('filter');
-  if (filterIndex !== -1) {
-    keyName = keyName.slice(filterIndex + 6);
-  }
-  keyName = keyName.split('[').join('');
-  keyName = keyName.split(']').join('');
+  keyName = keyName.replace('filter', '').replace('[', '').replace(']', '');
   return keyName;
 };
 
@@ -71,23 +66,19 @@ const parseAmenities = (amenitiesArray, mode) => {
 };
 
 /**
- * @summary Return a list of parks
- * @function
- * @returns {Promise<Object[]>} Promise object represents a list of parks
+ * @returns {Promise<object[]>} Promise object represents a list of parks
+ * @param {object}
  */
 const getParks = async (queries) => {
-  const connection = await conn.getConnection();
   const sqlParams = {};
 
   // add parameters in request to the sql query not including amenities filters
   _.forEach(getParameters, (key) => {
-    if (queries[key.name]) {
-      const newKeyName = tidyKeyName(key.name);
-      if (!newKeyName.includes('amenities')) {
-        sqlParams[newKeyName] = queries[key.name];
-      }
+    if (queries[key.name] && !key.name.includes('amenities')) {
+      sqlParams[tidyKeyName(key.name)] = queries[key.name];
     }
   });
+  console.log('sqlParams:', sqlParams);
   const queryParams = `
     ${queries['filter[amenities][some]'] ? parseAmenities(queries['filter[amenities][some]'], 'some') : ''}
     ${queries['filter[amenities][all]'] ? parseAmenities(queries['filter[amenities][all]'], 'all') : ''}
@@ -96,8 +87,9 @@ const getParks = async (queries) => {
     ${sqlParams.state ? 'AND STATE = :state' : ''}
     ${sqlParams.zip ? 'AND ZIP = :zip' : ''}
   `;
-  const sqlQuery = sql + queryParams;
-  console.log('sqlQuery:', sqlQuery);
+  const sqlQuery = `${sql}${queryParams}`;
+  // console.log('sqlQuery:', sqlQuery);
+  const connection = await conn.getConnection();
   try {
     const { rows } = await connection.execute(sqlQuery, sqlParams);
     const serializedParks = serializeParks(rows, queries);
@@ -108,24 +100,19 @@ const getParks = async (queries) => {
 };
 
 /**
- * @summary Return a specific park by unique ID
- * @function
  * @param {string} id Unique park ID
- * @returns {Promise<Object>} Promise object represents a specific park or return undefined if term
+ * @returns {Promise<object>} Promise object represents a specific park or return undefined if term
  *                            is not found
  */
 const getParkById = async (id) => {
   const connection = await conn.getConnection();
-  if (_.toInteger(id) === 0) {
-    return undefined;
-  }
   const sqlParams = {
     parkId: id,
   };
   const queryParams = `
     AND ID = :parkId
   `;
-  const sqlQuery = sql + queryParams;
+  const sqlQuery = `${sql}${queryParams}`;
   try {
     const { rows } = await connection.execute(sqlQuery, sqlParams);
     if (_.isEmpty(rows)) {

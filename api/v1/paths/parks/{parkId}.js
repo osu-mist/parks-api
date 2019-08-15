@@ -55,4 +55,4 @@ const deletePark = async (req, res) => {
   }
 };
 
-module.exports = { get, patch, deletePark };
+module.exports = { get, patch, delete: deletePark };
