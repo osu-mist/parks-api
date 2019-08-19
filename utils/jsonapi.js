@@ -4,8 +4,8 @@ const _ = require('lodash');
 const { apiBaseUrl, resourcePathLink, paramsLink } = appRoot.require('utils/uri-builder');
 
 /**
- * @summary Helper function to generate pagination params
- * @function
+ * Helper function to generate pagination params
+ *
  * @param {number} pageNumber page number
  * @param {number} pageSize page size
  * @returns {object} pagination parameters object
@@ -15,9 +15,9 @@ const pageParamsBuilder = (pageNumber, pageSize) => (
 );
 
 /**
- * @summary Generate JSON API serializer options
- * @function
- * @param {[object]} serializerArgs JSON API serializer arguments
+ * Generate JSON API serializer options
+ *
+ * @param {object[]} serializerArgs JSON API serializer arguments
  * @returns {object} JSON API serializer options
  */
 const serializerOptions = (serializerArgs) => {
