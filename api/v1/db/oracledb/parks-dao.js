@@ -49,11 +49,11 @@ const tidyKeyName = (keyName) => {
 };
 
 const parseAmenities = (amenitiesArray, mode) => {
-  const amenitiesEnum = openapi.parameters.filterAmenitiesAll.items.enum;
+  const amenEnum = openapi.definitions.ParkResource.properties.attributes.properties.amenities.enum;
   let sqlParams = '';
   for (let i = 0; i < _.size(amenitiesArray); i += 1) {
     const sqlAmenity = _.snakeCase(amenitiesArray[i]).toUpperCase();
-    if (amenitiesEnum.includes(amenitiesArray[i])) {
+    if (amenEnum.includes(amenitiesArray[i])) {
       if (i === 0) {
         sqlParams = `${sqlParams} ${sqlAmenity} = 1`;
       } else {
@@ -78,7 +78,6 @@ const getParks = async (queries) => {
       sqlParams[tidyKeyName(key.name)] = queries[key.name];
     }
   });
-  console.log('sqlParams:', sqlParams);
   const queryParams = `
     ${queries['filter[amenities][some]'] ? parseAmenities(queries['filter[amenities][some]'], 'some') : ''}
     ${queries['filter[amenities][all]'] ? parseAmenities(queries['filter[amenities][all]'], 'all') : ''}
@@ -88,7 +87,6 @@ const getParks = async (queries) => {
     ${sqlParams.zip ? 'AND ZIP = :zip' : ''}
   `;
   const sqlQuery = `${sql}${queryParams}`;
-  // console.log('sqlQuery:', sqlQuery);
   const connection = await conn.getConnection();
   try {
     const { rows } = await connection.execute(sqlQuery, sqlParams);

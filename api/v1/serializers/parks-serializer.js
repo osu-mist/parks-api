@@ -14,8 +14,8 @@ const parkResourcePath = 'parks';
 const parkResourceUrl = resourcePathLink(apiBaseUrl, parkResourcePath);
 
 const getAmenitiesArray = (rawPark) => {
-  const listOfAmenities = openapi.parameters.filterAmenitiesAll.items.enum;
-  const amenitiesArray = _.filter(listOfAmenities, value => rawPark[value] === '1');
+  const amenList = openapi.definitions.ParkResource.properties.attributes.properties.amenities.enum;
+  const amenitiesArray = _.filter(amenList, value => rawPark[value] === '1');
   return amenitiesArray;
 };
 
@@ -34,10 +34,7 @@ const structuredPark = (rawPark) => {
   };
 };
 
-const structuredParks = (rawParks) => {
-  const parks = _.map(rawParks, structuredPark);
-  return parks;
-};
+const structuredParks = rawParks => _.map(rawParks, structuredPark);
 
 /**
  * @summary Serialize parkResources to JSON API
