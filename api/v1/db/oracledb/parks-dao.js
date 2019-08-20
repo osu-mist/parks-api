@@ -43,31 +43,25 @@ const sql = `
 `;
 
 // removes 'filter', '[', and ']' from parameter names to match sql column names
-const tidyKeyName = (keyName) => {
-  keyName = keyName.replace('filter', '').replace('[', '').replace(']', '');
-  return keyName;
-};
+const tidyKeyName = keyName => keyName.replace(/filter|\]|\[/gi, '');
 
+// converts amenities from query params to sql snippet
 const parseAmenities = (amenitiesArray, mode) => {
-  const amenEnum = openapi.definitions.ParkResource.properties.attributes.properties.amenities.enum;
-  let sqlParams = '';
-  for (let i = 0; i < _.size(amenitiesArray); i += 1) {
-    const sqlAmenity = _.snakeCase(amenitiesArray[i]).toUpperCase();
-    if (amenEnum.includes(amenitiesArray[i])) {
-      if (i === 0) {
-        sqlParams = `${sqlParams} ${sqlAmenity} = 1`;
-      } else {
-        sqlParams = `${sqlParams} ${mode === 'all' ? 'AND' : 'OR'} ${sqlAmenity} = 1`;
-      }
+  const sqlParams = _.reduce(amenitiesArray, (accumulator, value, index) => {
+    const enums = openapi.definitions.ParkResource.properties.attributes.properties.amenities.enum;
+    const sqlAmenity = _.snakeCase(amenitiesArray[index]).toUpperCase();
+    if (enums.includes(amenitiesArray[index])) {
+      if (index === 0) return `${sqlAmenity} = 1`;
+      return `${accumulator} ${mode === 'all' ? 'AND' : 'OR'} ${sqlAmenity} = 1`;
     }
-  }
-  sqlParams = `AND (${sqlParams})`;
-  return sqlParams;
+    return undefined;
+  }, '');
+  return `AND (${sqlParams})`;
 };
 
 /**
+ * @param {object} queries queries object containing queries for endpoint
  * @returns {Promise<object[]>} Promise object represents a list of parks
- * @param {object}
  */
 const getParks = async (queries) => {
   const sqlParams = {};

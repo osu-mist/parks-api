@@ -39,19 +39,26 @@ const structuredParks = rawParks => _.map(rawParks, structuredPark);
 /**
  * @summary Serialize parkResources to JSON API
  * @function
- * @param {[Object]} rawParks Raw data rows from data source
- * @param {Object} query Query parameters
- * @returns {Object} Serialized parkResources object
+ * @param {object[]} rawParks Raw data rows from data source
+ * @param {object} query Query parameters
+ * @returns {object} Serialized parkResources object
  */
 const serializeParks = (rawParks, query) => {
   const topLevelSelfLink = paramsLink(parkResourceUrl, query);
+  const parkOwnerRelationships = {
+    owner: {
+      ref: 'ownerId',
+    },
+  };
   const serializerArgs = {
     identifierField: 'id',
     resourceKeys: parkResourceKeys,
     resourcePath: parkResourcePath,
     topLevelSelfLink,
     enableDataLinks: true,
+    relationships: parkOwnerRelationships,
   };
+
   return new JsonApiSerializer(
     parkResourceType,
     serializerOptions(serializerArgs),
@@ -61,17 +68,23 @@ const serializeParks = (rawParks, query) => {
 /**
  * @summary Serialize parkResource to JSON API
  * @function
- * @param {Object} rawPark Raw data row from data source
- * @returns {Object} Serialized parkResource object
+ * @param {object} rawPark Raw data row from data source
+ * @returns {object} Serialized parkResource object
  */
 const serializePark = (rawPark) => {
   const topLevelSelfLink = resourcePathLink(parkResourceUrl, rawPark.id);
+  const parkOwnerRelationships = {
+    owner: {
+      ref: 'ownerId',
+    },
+  };
   const serializerArgs = {
     identifierField: 'id',
     resourceKeys: parkResourceKeys,
     resourcePath: parkResourcePath,
     topLevelSelfLink,
     enableDataLinks: true,
+    relationships: parkOwnerRelationships,
   };
   return new JsonApiSerializer(
     parkResourceType,

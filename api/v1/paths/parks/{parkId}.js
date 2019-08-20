@@ -6,6 +6,8 @@ const { errorBuilder, errorHandler } = appRoot.require('errors/errors');
 
 /**
  * @summary Get park by unique ID
+ * @param {object} req request object
+ * @param {object} res response object
  */
 const get = async (req, res) => {
   try {
@@ -23,6 +25,8 @@ const get = async (req, res) => {
 
 /**
  * @summary patch parks
+ * @param {object} req request object
+ * @param {object} res response object
  */
 const patch = async (req, res) => {
   try {
@@ -40,6 +44,8 @@ const patch = async (req, res) => {
 
 /**
  * @summary Post parks
+ * @param {object} req request object
+ * @param {object} res response object
  */
 const deletePark = async (req, res) => {
   try {

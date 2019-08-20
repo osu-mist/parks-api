@@ -30,15 +30,13 @@ const serializerOptions = (serializerArgs) => {
     query,
     keyForAttribute,
     enableDataLinks,
+    relationships,
   } = serializerArgs;
 
   const resourceUrl = resourcePathLink(apiBaseUrl, resourcePath);
   const options = {
     pluralizeType: false,
     attributes: resourceKeys,
-    owner: {
-      ref: 'ownerId',
-    },
     id: identifierField,
     keyForAttribute: keyForAttribute || 'camelCase',
     dataLinks: {
@@ -79,7 +77,7 @@ const serializerOptions = (serializerArgs) => {
       currentPageSize: pageSize,
     };
   }
-  return options;
+  return { ...options, ...relationships }; // concat relationships to options
 };
 
 module.exports = { serializerOptions };
