@@ -43,18 +43,19 @@ const sql = `
 `;
 
 // removes 'filter', '[', and ']' from parameter names to match sql column names
-const tidyKeyName = keyName => keyName.replace(/filter|\]|\[/gi, '');
+const tidyKeyName = keyName => keyName.replace(/filter|\]|\[/, '');
 
 // converts amenities from query params to sql snippet
 const parseAmenities = (amenitiesArray, mode) => {
   const sqlParams = _.reduce(amenitiesArray, (accumulator, value, index) => {
-    const enums = openapi.definitions.ParkResource.properties.attributes.properties.amenities.enum;
-    const sqlAmenity = _.snakeCase(amenitiesArray[index]).toUpperCase();
-    if (enums.includes(amenitiesArray[index])) {
+    const openapiDefs = openapi.definitions;
+    const enums = openapiDefs.ParkResource.properties.attributes.properties.amenities.items.enum;
+    const sqlAmenity = _.snakeCase(value).toUpperCase();
+    if (enums.includes(value)) {
       if (index === 0) return `${sqlAmenity} = 1`;
       return `${accumulator} ${mode === 'all' ? 'AND' : 'OR'} ${sqlAmenity} = 1`;
     }
-    return undefined;
+    throw new Error('Unexpected amenity name');
   }, '');
   return `AND (${sqlParams})`;
 };
@@ -121,11 +122,26 @@ const getParkById = async (id) => {
   }
 };
 
-/* not implemented yet
-const postParks = async () => {
+/**
+ * @summary Post parks
+ * @param {object} parkBody park body object
+ * @returns {Promise<object>} Promise object represents a specific park or return undefined if term
+ *                            is not found
+ */
+
+/*
+const postParks = async (parkBody) => {
+  const sqlQuery = `
+    INSERT INTO PARKS (NAME, STREET_ADDRESS, CITY, STATE, ZIP, LATITUDE, LONGITUDE, OWNER_ID,
+    BALLFIELD, BARBEQUE_GRILLS, BASKETBALL_COURTS, BIKE_PATHS, BOAT_RAMPS, DOGS_ALLOWED,
+    DRINKING_WATER, FISHING, HIKING_TRAILS, HORSESHOES, NATURAL_AREA, OFFLEASH_DOG_PARK,
+    OPEN_FIELDS, PICNIC_SHELTERS, PICNIC_TABLES, PLAY_AREA, RESTROOMS, SCENIC_VIEW_POINT,
+    SOCCER_FIELDS, TENNIS_COURTS, VOLLEYBALL) VALUES
+  `;
+  console.log(parkBody);
   const connection = await conn.getConnection();
   try {
-    const { rawParks } = await connection.execute();
+    const { rows } = await connection.execute();
   } finally {
     connection.close();
   }

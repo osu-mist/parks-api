@@ -14,12 +14,20 @@ const parkResourcePath = 'parks';
 const parkResourceUrl = resourcePathLink(apiBaseUrl, parkResourcePath);
 
 const getAmenitiesArray = (rawPark) => {
-  const amenList = openapi.definitions.ParkResource.properties.attributes.properties.amenities.enum;
+  const amenList = parkResourceProp.attributes.properties.amenities.items.enum;
   const amenitiesArray = _.filter(amenList, value => rawPark[value] === '1');
   return amenitiesArray;
 };
 
+const stringsToNumbers = (rawPark) => {
+  rawPark.zip = _.toInteger(rawPark.zip);
+  rawPark.longitude = _.toNumber(rawPark.longitude);
+  rawPark.latitude = _.toNumber(rawPark.latitude);
+  return rawPark;
+};
+
 const structuredPark = (rawPark) => {
+  rawPark = stringsToNumbers(rawPark);
   const locationInfo = _.pick(rawPark, ['streetAddress', 'city', 'state', 'zip', 'latitude', 'longitude']);
   const ownerInfo = {
     ownerId: rawPark.ownerId,
@@ -55,7 +63,6 @@ const serializeParks = (rawParks, query) => {
     resourceKeys: parkResourceKeys,
     resourcePath: parkResourcePath,
     topLevelSelfLink,
-    enableDataLinks: true,
     relationships: parkOwnerRelationships,
   };
 
@@ -83,7 +90,6 @@ const serializePark = (rawPark) => {
     resourceKeys: parkResourceKeys,
     resourcePath: parkResourcePath,
     topLevelSelfLink,
-    enableDataLinks: true,
     relationships: parkOwnerRelationships,
   };
   return new JsonApiSerializer(
