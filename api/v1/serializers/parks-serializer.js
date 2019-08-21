@@ -64,6 +64,7 @@ const serializeParks = (rawParks, query) => {
     resourcePath: parkResourcePath,
     topLevelSelfLink,
     relationships: parkOwnerRelationships,
+    enableDataLinks: true,
   };
 
   return new JsonApiSerializer(
@@ -91,6 +92,7 @@ const serializePark = (rawPark) => {
     resourcePath: parkResourcePath,
     topLevelSelfLink,
     relationships: parkOwnerRelationships,
+    enableDataLinks: true,
   };
   return new JsonApiSerializer(
     parkResourceType,

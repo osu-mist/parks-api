@@ -415,6 +415,14 @@ definitions:
         type: string
         description: type of object, should be park
         enum: [park]
+      links:
+        type: object
+        description: links to resource
+        properties:
+          self:
+            type: string
+            format: uri
+            description: link to the park resource
       attributes: &parkAttributes
         required: [name, location, amenities]
         properties:

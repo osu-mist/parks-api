@@ -29,6 +29,7 @@ const serializerOptions = (serializerArgs) => {
     topLevelSelfLink,
     query,
     keyForAttribute,
+    enableDataLinks,
     relationships,
   } = serializerArgs;
 
@@ -38,6 +39,14 @@ const serializerOptions = (serializerArgs) => {
     attributes: resourceKeys,
     id: identifierField,
     keyForAttribute: keyForAttribute || 'camelCase',
+    dataLinks: {
+      self: (row) => {
+        if (enableDataLinks) {
+          return resourcePathLink(resourceUrl, row[identifierField]);
+        }
+        return null;
+      },
+    },
     topLevelLinks: { self: topLevelSelfLink },
   };
   if (pagination) {
