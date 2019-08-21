@@ -28,7 +28,7 @@ const get = async (req, res) => {
 const post = async (req, res) => {
   try {
     const result = await parksDao.postParks(req.body);
-    return res.send(result);
+    return res.status(201).send(result);
   } catch (err) {
     return errorHandler(res, err);
   }

@@ -1,5 +1,6 @@
 const appRoot = require('app-root-path');
 const _ = require('lodash');
+const oracledb = require('oracledb');
 
 const conn = appRoot.require('api/v1/db/oracledb/connection');
 const { openapi } = appRoot.require('utils/load-openapi');
@@ -128,56 +129,60 @@ const getParkById = async (id) => {
  * @returns {Promise<object>} Promise object represents a specific park or return undefined if term
  *                            is not found
  */
-/*
 const postParks = async (parkBody) => {
-  const { attributes } = parkBody.data;
+  const { attributes, relationships } = parkBody.data;
   const { amenities, location } = attributes;
+  const sqlBinds = {
+    name: attributes.name,
+    streetAddress: location.streetAddress,
+    city: location.city,
+    state: location.state,
+    zip: location.zip,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    ownerId: relationships.owner.data.id,
+    outId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
+  };
   const sqlQuery = `
     INSERT INTO PARKS (NAME, STREET_ADDRESS, CITY, STATE, ZIP, LATITUDE, LONGITUDE, OWNER_ID,
     BALLFIELD, BARBEQUE_GRILLS, BASKETBALL_COURTS, BIKE_PATHS, BOAT_RAMPS, DOGS_ALLOWED,
     DRINKING_WATER, FISHING, HIKING_TRAILS, HORSESHOES, NATURAL_AREA, OFFLEASH_DOG_PARK,
     OPEN_FIELDS, PICNIC_SHELTERS, PICNIC_TABLES, PLAY_AREA, RESTROOMS, SCENIC_VIEW_POINT,
-    SOCCER_FIELDS, TENNIS_COURTS, VOLLEYBALL) VALUES (
-      ${attributes.name},
-      ${location.streetAddress},
-      ${location.city},
-      ${location.state},
-      ${location.zip},
-      ${location.latitude},
-      ${location.longitude},
-      ${parkBody.relationships.owner.data.id},
-      ${amenities.ballfield ? 1 : 0},
-      ${amenities.barbequeGrills ? 1 : 0},
-      ${amenities.basketballCourts ? 1 : 0},
-      ${amenities.bikePaths ? 1 : 0},
-      ${amenities.boatRamps ? 1 : 0},
-      ${amenities.dogsAllowed ? 1 : 0},
-      ${amenities.drinkingWater ? 1 : 0},
-      ${amenities.fishing ? 1 : 0},
-      ${amenities.hikingTrails ? 1 : 0},
-      ${amenities.horseshoes ? 1 : 0},
-      ${amenities.naturalArea ? 1 : 0},
-      ${amenities.offleashDogPark ? 1 : 0},
-      ${amenities.openFields ? 1 : 0},
-      ${amenities.picnicShelters ? 1 : 0},
-      ${amenities.picnicTables ? 1 : 0},
-      ${amenities.playArea ? 1 : 0},
-      ${amenities.restrooms ? 1 : 0},
-      ${amenities.scenicViewPoint ? 1 : 0},
-      ${amenities.soccerFields ? 1 : 0},
-      ${amenities.tennisCourts ? 1 : 0},
-      ${amenities.volleyball ? 1 : 0},
-      )
+    SOCCER_FIELDS, TENNIS_COURTS, VOLLEYBALL) 
+    VALUES (
+      :name, :streetAddress, :city, :state, :zip, :latitude, :longitude, :ownerId,
+      ${amenities.includes('ballfield') ? 1 : 0},
+      ${amenities.includes('barbequeGrills') ? 1 : 0},
+      ${amenities.includes('basketballCourts') ? 1 : 0},
+      ${amenities.includes('bikePaths') ? 1 : 0},
+      ${amenities.includes('boatRamps') ? 1 : 0},
+      ${amenities.includes('dogsAllowed') ? 1 : 0},
+      ${amenities.includes('drinkingWater') ? 1 : 0},
+      ${amenities.includes('fishing') ? 1 : 0},
+      ${amenities.includes('hikingTrails') ? 1 : 0},
+      ${amenities.includes('horseshoes') ? 1 : 0},
+      ${amenities.includes('naturalArea') ? 1 : 0},
+      ${amenities.includes('offleashDogPark') ? 1 : 0},
+      ${amenities.includes('openFields') ? 1 : 0},
+      ${amenities.includes('picnicShelters') ? 1 : 0},
+      ${amenities.includes('picnicTables') ? 1 : 0},
+      ${amenities.includes('playArea') ? 1 : 0},
+      ${amenities.includes('restrooms') ? 1 : 0},
+      ${amenities.includes('scenicViewPoint') ? 1 : 0},
+      ${amenities.includes('soccerFields') ? 1 : 0},
+      ${amenities.includes('tennisCourts') ? 1 : 0},
+      ${amenities.includes('volleyball') ? 1 : 0}
+    )
+    RETURNING ID INTO :outId
   `;
-  const sqlParams = {
-    body: parkBody,
-  };
   const connection = await conn.getConnection();
   try {
-    const { rows } = await connection.execute(sqlQuery, sqlParams);
+    const rawParks = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
+    const result = await getParkById(rawParks.outBinds.outId[0]);
+    return result;
   } finally {
     connection.close();
   }
 };
-*/
-module.exports = { getParks, getParkById /* , postParks */};
+
+module.exports = { getParks, getParkById, postParks };
