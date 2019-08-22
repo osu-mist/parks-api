@@ -44,7 +44,7 @@ const sql = `
 `;
 
 // removes 'filter', '[', and ']' from parameter names to match sql column names
-const tidyKeyName = keyName => keyName.replace(/filter|\]|\[/, '');
+const tidyKeyName = keyName => keyName.replace(/filter|\]|\[/g, '');
 
 // converts amenities from query params to sql snippet
 const parseAmenities = (amenitiesArray, mode) => {
