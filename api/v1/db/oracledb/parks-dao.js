@@ -191,7 +191,6 @@ const postParks = async (parkBody) => {
     )
     RETURNING ID INTO :outId
   `;
-  console.log(sqlQuery);
   const connection = await conn.getConnection();
   try {
     const rawParks = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
