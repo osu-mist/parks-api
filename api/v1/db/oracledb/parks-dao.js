@@ -63,7 +63,7 @@ const parseAmenities = (amenitiesArray, mode) => {
 };
 
 // parses amenities for use in post parks sql query
-const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, index) => {
+const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, value, index) => {
   const returnString = `${accumulator} ${amenities.includes(amenityEnum[index]) ? 1 : 0}`;
   if (index === amenityEnum.length - 1) {
     return returnString;
@@ -191,6 +191,7 @@ const postParks = async (parkBody) => {
     )
     RETURNING ID INTO :outId
   `;
+  console.log(sqlQuery);
   const connection = await conn.getConnection();
   try {
     const rawParks = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
