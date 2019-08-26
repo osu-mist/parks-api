@@ -52,7 +52,7 @@ const deletePark = async (req, res) => {
   try {
     const { parkId } = req.params;
     const result = await parksDao.deleteParkById(parkId);
-    if (result === undefined) {
+    if (!result) {
       return errorBuilder(res, 404, 'A park with the specified ID was not found.');
     }
     return res.status(204).send(result);
