@@ -323,7 +323,7 @@ parameters:
     name: ownerId
     description: Unique Owner ID
     type: string
-    pattern: '^[0-9]*$'
+    pattern: '^[0-9]+$'
     required: true
   parkIdPath:
     name: parkId
@@ -331,7 +331,7 @@ parameters:
     description: Unique Park ID
     required: true
     type: string
-    pattern: '^[0-9]*$'
+    pattern: '^[0-9]+$'
   parkPostBody:
     name: parkBody
     in: body
