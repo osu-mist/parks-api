@@ -1,11 +1,15 @@
 const appRoot = require('app-root-path');
 const _ = require('lodash');
+const oracledb = require('oracledb');
 
 const conn = appRoot.require('api/v1/db/oracledb/connection');
 const { openapi } = appRoot.require('utils/load-openapi');
+const { apiBaseUrl, resourcePathLink } = appRoot.require('utils/uri-builder');
 const { serializeParks, serializePark } = require('../../serializers/parks-serializer');
 
 const getParameters = openapi.paths['/parks'].get.parameters;
+const { definitions } = openapi;
+const amenityEnum = definitions.ParkResource.properties.attributes.properties.amenities.items.enum;
 
 const sql = `
   SELECT ID AS "id",
@@ -48,10 +52,8 @@ const tidyKeyName = keyName => keyName.replace(/filter|\]|\[/g, '');
 // converts amenities from query params to sql snippet
 const parseAmenities = (amenitiesArray, mode) => {
   const sqlParams = _.reduce(amenitiesArray, (accumulator, value, index) => {
-    const openapiDefs = openapi.definitions;
-    const enums = openapiDefs.ParkResource.properties.attributes.properties.amenities.items.enum;
     const sqlAmenity = _.snakeCase(value).toUpperCase();
-    if (enums.includes(value)) {
+    if (amenityEnum.includes(value)) {
       if (index === 0) return `${sqlAmenity} = 1`;
       return `${accumulator} ${mode === 'all' ? 'AND' : 'OR'} ${sqlAmenity} = 1`;
     }
@@ -59,6 +61,15 @@ const parseAmenities = (amenitiesArray, mode) => {
   }, '');
   return `AND (${sqlParams})`;
 };
+
+// parses amenities for use in post parks sql query
+const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, value, index) => {
+  const returnString = `${accumulator} ${amenities.includes(amenityEnum[index]) ? 1 : 0}`;
+  if (index === amenityEnum.length - 1) {
+    return returnString;
+  }
+  return `${returnString},`;
+}, '');
 
 /**
  * @param {object} queries queries object containing queries for endpoint
@@ -128,56 +139,68 @@ const getParkById = async (id) => {
  * @returns {Promise<object>} Promise object represents a specific park or return undefined if term
  *                            is not found
  */
-/*
 const postParks = async (parkBody) => {
-  const { attributes } = parkBody.data;
+  const { attributes, relationships } = parkBody.data;
   const { amenities, location } = attributes;
-  const sqlQuery = `
-    INSERT INTO PARKS (NAME, STREET_ADDRESS, CITY, STATE, ZIP, LATITUDE, LONGITUDE, OWNER_ID,
-    BALLFIELD, BARBEQUE_GRILLS, BASKETBALL_COURTS, BIKE_PATHS, BOAT_RAMPS, DOGS_ALLOWED,
-    DRINKING_WATER, FISHING, HIKING_TRAILS, HORSESHOES, NATURAL_AREA, OFFLEASH_DOG_PARK,
-    OPEN_FIELDS, PICNIC_SHELTERS, PICNIC_TABLES, PLAY_AREA, RESTROOMS, SCENIC_VIEW_POINT,
-    SOCCER_FIELDS, TENNIS_COURTS, VOLLEYBALL) VALUES (
-      ${attributes.name},
-      ${location.streetAddress},
-      ${location.city},
-      ${location.state},
-      ${location.zip},
-      ${location.latitude},
-      ${location.longitude},
-      ${parkBody.relationships.owner.data.id},
-      ${amenities.ballfield ? 1 : 0},
-      ${amenities.barbequeGrills ? 1 : 0},
-      ${amenities.basketballCourts ? 1 : 0},
-      ${amenities.bikePaths ? 1 : 0},
-      ${amenities.boatRamps ? 1 : 0},
-      ${amenities.dogsAllowed ? 1 : 0},
-      ${amenities.drinkingWater ? 1 : 0},
-      ${amenities.fishing ? 1 : 0},
-      ${amenities.hikingTrails ? 1 : 0},
-      ${amenities.horseshoes ? 1 : 0},
-      ${amenities.naturalArea ? 1 : 0},
-      ${amenities.offleashDogPark ? 1 : 0},
-      ${amenities.openFields ? 1 : 0},
-      ${amenities.picnicShelters ? 1 : 0},
-      ${amenities.picnicTables ? 1 : 0},
-      ${amenities.playArea ? 1 : 0},
-      ${amenities.restrooms ? 1 : 0},
-      ${amenities.scenicViewPoint ? 1 : 0},
-      ${amenities.soccerFields ? 1 : 0},
-      ${amenities.tennisCourts ? 1 : 0},
-      ${amenities.volleyball ? 1 : 0},
-      )
-  `;
-  const sqlParams = {
-    body: parkBody,
+  const sqlBinds = {
+    name: attributes.name,
+    streetAddress: location.streetAddress,
+    city: location.city,
+    state: location.state,
+    zip: location.zip,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    ownerId: relationships.owner.data.id,
+    outId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
   };
+  const sqlQuery = `
+    INSERT INTO PARKS (
+      NAME,
+      STREET_ADDRESS,
+      CITY,
+      STATE,
+      ZIP,
+      LATITUDE,
+      LONGITUDE,
+      OWNER_ID,
+      BALLFIELD,
+      BARBEQUE_GRILLS,
+      BASKETBALL_COURTS,
+      BIKE_PATHS,
+      BOAT_RAMPS,
+      DOGS_ALLOWED,
+      DRINKING_WATER,
+      FISHING,
+      HIKING_TRAILS,
+      HORSESHOES,
+      NATURAL_AREA,
+      OFFLEASH_DOG_PARK,
+      OPEN_FIELDS,
+      PICNIC_SHELTERS,
+      PICNIC_TABLES,
+      PLAY_AREA,
+      RESTROOMS,
+      SCENIC_VIEW_POINT,
+      SOCCER_FIELDS,
+      TENNIS_COURTS,
+      VOLLEYBALL
+    ) 
+    VALUES (
+      :name, :streetAddress, :city, :state, :zip, :latitude, :longitude, :ownerId,
+      ${postAmenitiesSqlHelper(amenities)}
+    )
+    RETURNING ID INTO :outId
+  `;
+  console.log(sqlQuery);
   const connection = await conn.getConnection();
   try {
-    const { rows } = await connection.execute(sqlQuery, sqlParams);
+    const rawParks = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
+    const result = await getParkById(rawParks.outBinds.outId[0]);
+    result.links.self = resourcePathLink(apiBaseUrl, 'parks');
+    return result;
   } finally {
     connection.close();
   }
 };
-*/
-module.exports = { getParks, getParkById /* , postParks */};
+
+module.exports = { getParks, getParkById, postParks };

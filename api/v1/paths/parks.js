@@ -2,7 +2,7 @@ const appRoot = require('app-root-path');
 
 const parksDao = require('../db/oracledb/parks-dao');
 
-const { errorHandler } = appRoot.require('errors/errors');
+const { errorHandler, errorBuilder } = appRoot.require('errors/errors');
 
 /**
  * @summary Get parks
@@ -28,8 +28,12 @@ const get = async (req, res) => {
 const post = async (req, res) => {
   try {
     const result = await parksDao.postParks(req.body);
-    return res.send(result);
+    res.set('Location', result.data.links.self);
+    return res.status(201).send(result);
   } catch (err) {
+    if (err.errorNum === 2291) {
+      return errorBuilder(res, 404, 'Owner ID not found');
+    }
     return errorHandler(res, err);
   }
 };
