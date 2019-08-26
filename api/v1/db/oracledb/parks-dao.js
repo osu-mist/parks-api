@@ -202,4 +202,33 @@ const postParks = async (parkBody) => {
   }
 };
 
-module.exports = { getParks, getParkById, postParks };
+/**
+ * @param {string} id Unique park ID
+ * @returns {Promise<object>} Promise object represents a specific park or return undefined if term
+ *                            is not found
+ */
+const deleteParkById = async (id) => {
+  const sqlParams = {
+    parkId: id,
+  };
+  const sqlQuery = 'DELETE FROM PARKS WHERE ID = :parkId';
+  const connection = await conn.getConnection();
+  try {
+    // query db to see if park with id exists
+    const { rows } = await connection.execute(`${sql} AND ID = :parkId`, sqlParams);
+    if (_.isEmpty(rows)) {
+      return undefined;
+    }
+    const result = await connection.execute(sqlQuery, sqlParams, { autoCommit: true });
+    return result;
+  } finally {
+    connection.close();
+  }
+};
+
+module.exports = {
+  getParks,
+  getParkById,
+  postParks,
+  deleteParkById,
+};
