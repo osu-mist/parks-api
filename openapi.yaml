@@ -484,6 +484,7 @@ definitions:
                     enum: [owner]
                   id:
                     type: string
+                    pattern: '^[0-9]+$'
                     example: '1111'
   PostParkModel:
     required: [data]

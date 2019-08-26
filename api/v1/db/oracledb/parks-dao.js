@@ -4,6 +4,7 @@ const oracledb = require('oracledb');
 
 const conn = appRoot.require('api/v1/db/oracledb/connection');
 const { openapi } = appRoot.require('utils/load-openapi');
+const { apiBaseUrl, resourcePathLink } = appRoot.require('utils/uri-builder');
 const { serializeParks, serializePark } = require('../../serializers/parks-serializer');
 
 const getParameters = openapi.paths['/parks'].get.parameters;
@@ -193,6 +194,7 @@ const postParks = async (parkBody) => {
   try {
     const rawParks = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
     const result = await getParkById(rawParks.outBinds.outId[0]);
+    result.links.self = resourcePathLink(apiBaseUrl, 'parks');
     return result;
   } finally {
     connection.close();

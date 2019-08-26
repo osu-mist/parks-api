@@ -28,6 +28,7 @@ const get = async (req, res) => {
 const post = async (req, res) => {
   try {
     const result = await parksDao.postParks(req.body);
+    res.set('Locations', result.data.links.self);
     return res.status(201).send(result);
   } catch (err) {
     if (err.errorNum === 2291) {
