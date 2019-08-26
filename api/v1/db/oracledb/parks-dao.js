@@ -63,11 +63,12 @@ const parseAmenities = (amenitiesArray, mode) => {
 };
 
 // parses amenities for use in post parks sql query
-const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, value, index) => {
+const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, index) => {
+  const returnString = `${accumulator} ${amenities.includes(amenityEnum[index]) ? 1 : 0}`;
   if (index === amenityEnum.length - 1) {
-    return `${accumulator} ${amenities.includes(amenityEnum[index]) ? 1 : 0}`;
+    return returnString;
   }
-  return `${accumulator} ${amenities.includes(amenityEnum[index]) ? 1 : 0},`;
+  return `${returnString},`;
 }, '');
 
 /**
