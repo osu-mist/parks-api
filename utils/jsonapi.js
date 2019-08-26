@@ -3,7 +3,6 @@ const _ = require('lodash');
 
 const { apiBaseUrl, resourcePathLink, paramsLink } = appRoot.require('utils/uri-builder');
 
-
 /**
  * Helper function to generate pagination params
  *
@@ -31,6 +30,7 @@ const serializerOptions = (serializerArgs) => {
     query,
     keyForAttribute,
     enableDataLinks,
+    relationships,
   } = serializerArgs;
 
   const resourceUrl = resourcePathLink(apiBaseUrl, resourcePath);
@@ -49,7 +49,6 @@ const serializerOptions = (serializerArgs) => {
     },
     topLevelLinks: { self: topLevelSelfLink },
   };
-
   if (pagination) {
     const {
       pageNumber,
@@ -78,8 +77,8 @@ const serializerOptions = (serializerArgs) => {
       currentPageSize: pageSize,
     };
   }
-
-  return options;
+  // concat relationships to options
+  return { ...options, ...relationships };
 };
 
 module.exports = { serializerOptions };

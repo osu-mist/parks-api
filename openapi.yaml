@@ -263,25 +263,25 @@ parameters:
       type: string
       enum: &amenitiesEnum
         - ballfield
-        - barbeque grills
-        - basketball courts
-        - bike paths
-        - boat ramps
-        - dogs allowed
-        - drinking water
+        - barbequeGrills
+        - basketballCourts
+        - bikePaths
+        - boatRamps
+        - dogsAllowed
+        - drinkingWater
         - fishing
-        - hiking trails
+        - hikingTrails
         - horseshoes
-        - natural area
-        - offleash dog park
-        - open fields
-        - picnic shelters
-        - picnic tables
-        - play area
+        - naturalArea
+        - offleashDogPark
+        - openFields
+        - picnicShelters
+        - picnicTables
+        - playArea
         - restrooms
-        - scenic view point
-        - soccer fields
-        - tennis courts
+        - scenicViewPoint
+        - soccerFields
+        - tennisCourts
         - volleyball
   filterAmenitiesSome:
     in: query
@@ -323,6 +323,7 @@ parameters:
     name: ownerId
     description: Unique Owner ID
     type: string
+    pattern: '^[0-9]+$'
     required: true
   parkIdPath:
     name: parkId
@@ -330,6 +331,7 @@ parameters:
     description: Unique Park ID
     required: true
     type: string
+    pattern: '^[0-9]+$'
   parkPostBody:
     name: parkBody
     in: body
@@ -363,7 +365,7 @@ definitions:
     properties:
       self:
         type: string
-        format: url
+        format: uri
         description: Self-link of current resource
   OwnerResource:
     required: [id, type, attributes]
@@ -403,7 +405,7 @@ definitions:
             properties:
               ownerName: *ownerName
   ParkResource:
-    required: [id, type, attributes, relationships]
+    required: [id, type, links, attributes, relationships]
     properties:
       id: &parkId
         type: string
@@ -413,6 +415,14 @@ definitions:
         type: string
         description: type of object, should be park
         enum: [park]
+      links:
+        type: object
+        description: links to resource
+        properties:
+          self:
+            type: string
+            format: uri
+            description: link to the park resource
       attributes: &parkAttributes
         required: [name, location, amenities]
         properties:
@@ -453,8 +463,8 @@ definitions:
                 example: -123.269906
           amenities: &amenities
             type: array
-            enum: *amenitiesEnum
             items:
+              enum: *amenitiesEnum
               type: string
             description: list of amenities at park
       relationships: &parkRelationships
@@ -530,7 +540,7 @@ definitions:
         properties:
           about:
             type: string
-            format: url
+            format: uri
             description: A link to further information about the error
             example: 'https://developer.oregonstate.edu/documentation/error-reference#1234'
   ParkResult:
