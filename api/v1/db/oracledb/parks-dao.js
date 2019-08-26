@@ -7,6 +7,8 @@ const { openapi } = appRoot.require('utils/load-openapi');
 const { serializeParks, serializePark } = require('../../serializers/parks-serializer');
 
 const getParameters = openapi.paths['/parks'].get.parameters;
+const { definitions } = openapi;
+const amenityEnum = definitions.ParkResource.properties.attributes.properties.amenities.items.enum;
 
 const sql = `
   SELECT ID AS "id",
@@ -49,10 +51,8 @@ const tidyKeyName = keyName => keyName.replace(/filter|\]|\[/g, '');
 // converts amenities from query params to sql snippet
 const parseAmenities = (amenitiesArray, mode) => {
   const sqlParams = _.reduce(amenitiesArray, (accumulator, value, index) => {
-    const openapiDefs = openapi.definitions;
-    const enums = openapiDefs.ParkResource.properties.attributes.properties.amenities.items.enum;
     const sqlAmenity = _.snakeCase(value).toUpperCase();
-    if (enums.includes(value)) {
+    if (amenityEnum.includes(value)) {
       if (index === 0) return `${sqlAmenity} = 1`;
       return `${accumulator} ${mode === 'all' ? 'AND' : 'OR'} ${sqlAmenity} = 1`;
     }
@@ -60,6 +60,14 @@ const parseAmenities = (amenitiesArray, mode) => {
   }, '');
   return `AND (${sqlParams})`;
 };
+
+// parses amenities for use in post parks sql query
+const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, value, index) => {
+  if (index === amenityEnum.length - 1) {
+    return `${accumulator} ${amenities.includes(amenityEnum[index]) ? 1 : 0}`;
+  }
+  return `${accumulator} ${amenities.includes(amenityEnum[index]) ? 1 : 0},`;
+}, '');
 
 /**
  * @param {object} queries queries object containing queries for endpoint
@@ -144,34 +152,40 @@ const postParks = async (parkBody) => {
     outId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
   };
   const sqlQuery = `
-    INSERT INTO PARKS (NAME, STREET_ADDRESS, CITY, STATE, ZIP, LATITUDE, LONGITUDE, OWNER_ID,
-    BALLFIELD, BARBEQUE_GRILLS, BASKETBALL_COURTS, BIKE_PATHS, BOAT_RAMPS, DOGS_ALLOWED,
-    DRINKING_WATER, FISHING, HIKING_TRAILS, HORSESHOES, NATURAL_AREA, OFFLEASH_DOG_PARK,
-    OPEN_FIELDS, PICNIC_SHELTERS, PICNIC_TABLES, PLAY_AREA, RESTROOMS, SCENIC_VIEW_POINT,
-    SOCCER_FIELDS, TENNIS_COURTS, VOLLEYBALL) 
+    INSERT INTO PARKS (
+      NAME,
+      STREET_ADDRESS,
+      CITY,
+      STATE,
+      ZIP,
+      LATITUDE,
+      LONGITUDE,
+      OWNER_ID,
+      BALLFIELD,
+      BARBEQUE_GRILLS,
+      BASKETBALL_COURTS,
+      BIKE_PATHS,
+      BOAT_RAMPS,
+      DOGS_ALLOWED,
+      DRINKING_WATER,
+      FISHING,
+      HIKING_TRAILS,
+      HORSESHOES,
+      NATURAL_AREA,
+      OFFLEASH_DOG_PARK,
+      OPEN_FIELDS,
+      PICNIC_SHELTERS,
+      PICNIC_TABLES,
+      PLAY_AREA,
+      RESTROOMS,
+      SCENIC_VIEW_POINT,
+      SOCCER_FIELDS,
+      TENNIS_COURTS,
+      VOLLEYBALL
+    ) 
     VALUES (
       :name, :streetAddress, :city, :state, :zip, :latitude, :longitude, :ownerId,
-      ${amenities.includes('ballfield') ? 1 : 0},
-      ${amenities.includes('barbequeGrills') ? 1 : 0},
-      ${amenities.includes('basketballCourts') ? 1 : 0},
-      ${amenities.includes('bikePaths') ? 1 : 0},
-      ${amenities.includes('boatRamps') ? 1 : 0},
-      ${amenities.includes('dogsAllowed') ? 1 : 0},
-      ${amenities.includes('drinkingWater') ? 1 : 0},
-      ${amenities.includes('fishing') ? 1 : 0},
-      ${amenities.includes('hikingTrails') ? 1 : 0},
-      ${amenities.includes('horseshoes') ? 1 : 0},
-      ${amenities.includes('naturalArea') ? 1 : 0},
-      ${amenities.includes('offleashDogPark') ? 1 : 0},
-      ${amenities.includes('openFields') ? 1 : 0},
-      ${amenities.includes('picnicShelters') ? 1 : 0},
-      ${amenities.includes('picnicTables') ? 1 : 0},
-      ${amenities.includes('playArea') ? 1 : 0},
-      ${amenities.includes('restrooms') ? 1 : 0},
-      ${amenities.includes('scenicViewPoint') ? 1 : 0},
-      ${amenities.includes('soccerFields') ? 1 : 0},
-      ${amenities.includes('tennisCourts') ? 1 : 0},
-      ${amenities.includes('volleyball') ? 1 : 0}
+      ${postAmenitiesSqlHelper(amenities)}
     )
     RETURNING ID INTO :outId
   `;
