@@ -214,12 +214,8 @@ const deleteParkById = async (id) => {
   const sqlQuery = 'DELETE FROM PARKS WHERE ID = :parkId';
   const connection = await conn.getConnection();
   try {
-    // query db to see if park with id exists
-    const { rows } = await connection.execute(`${sql} AND ID = :parkId`, sqlParams);
-    if (_.isEmpty(rows)) {
-      return undefined;
-    }
     const result = await connection.execute(sqlQuery, sqlParams, { autoCommit: true });
+    if (result.rowsAffected === 0) return undefined;
     return result;
   } finally {
     connection.close();

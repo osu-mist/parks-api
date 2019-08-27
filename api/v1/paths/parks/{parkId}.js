@@ -6,9 +6,7 @@ const { errorBuilder, errorHandler } = appRoot.require('errors/errors');
 
 /**
  * @summary Get park by unique ID
- * @param {object} req request object
- * @param {object} res response object
- * @returns {object} sends result from dao unless an error is caught
+ * @type RequestHandler
  */
 const get = async (req, res) => {
   try {
@@ -24,9 +22,8 @@ const get = async (req, res) => {
 };
 
 /**
- * @summary patch parks
- * @param {object} req request object
- * @param {object} res response object
+ * @summary patch park
+ * @type RequestHandler
  */
 const patch = async (req, res) => {
   try {
@@ -43,10 +40,8 @@ const patch = async (req, res) => {
 };
 
 /**
- * @summary Post parks
- * @param {object} req request object
- * @param {object} res response object
- * @returns {object} sends result from dao unless an error is caught
+ * @summary Post park
+ * @type RequestHandler
  */
 const deletePark = async (req, res) => {
   try {
