@@ -73,8 +73,7 @@ const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, 
 
 // generates sql query for patchParks
 const getPatchSqlQuery = (body) => {
-  const { attributes, relationships } = body.data;
-  const { location, amenities, name } = attributes;
+  const { attributes: { location, amenities, name }, relationships } = body.data;
   const patchFields = [];
   if (name) patchFields.push('NAME = :name');
   if (relationships.owner.data.id) patchFields.push('OWNER_ID = :ownerId');
@@ -94,8 +93,7 @@ const getPatchSqlQuery = (body) => {
 
 // generates sql binds for patchParks
 const getPatchSqlBinds = (body) => {
-  const { attributes, relationships, id } = body.data;
-  const { location, name } = attributes;
+  const { attributes: { location, name }, relationships, id } = body.data;
   const sqlBinds = {};
   _.forEach(location, (value, key) => {
     sqlBinds[key] = value;

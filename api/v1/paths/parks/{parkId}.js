@@ -29,10 +29,9 @@ const get = async (req, res) => {
  */
 const patch = async (req, res) => {
   try {
-    const { body, params } = req;
-    const { parkId } = params;
+    const { body, params: { parkId } } = req;
     if (body.data.id !== parkId) {
-      return errorBuilder(res, 400, ['ID in patch body does not match ID in path.']);
+      return errorBuilder(res, 409, ['ID in patch body does not match ID in path.']);
     }
     const result = await parksDao.patchParkById(parkId, body);
     if (!result) {
