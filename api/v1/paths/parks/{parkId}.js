@@ -6,25 +6,23 @@ const { errorBuilder, errorHandler } = appRoot.require('errors/errors');
 
 /**
  * @summary Get park by unique ID
- * @param {object} req request object
- * @param {object} res response object
+ * @type RequestHandler
  */
 const get = async (req, res) => {
   try {
     const { parkId } = req.params;
     const result = await parksDao.getParkById(parkId);
     if (!result) {
-      errorBuilder(res, 404, 'A park with the specified ID was not found.');
-    } else {
-      res.send(result);
+      return errorBuilder(res, 404, 'A park with the specified ID was not found.');
     }
+    return res.send(result);
   } catch (err) {
-    errorHandler(res, err);
+    return errorHandler(res, err);
   }
 };
 
 /**
- * @summary patch parks
+ * @summary patch park
  * @type RequestHandler
  */
 const patch = async (req, res) => {
@@ -44,21 +42,19 @@ const patch = async (req, res) => {
 };
 
 /**
- * @summary Post parks
- * @param {object} req request object
- * @param {object} res response object
+ * @summary Post park
+ * @type RequestHandler
  */
 const deletePark = async (req, res) => {
   try {
     const { parkId } = req.params;
-    const result = await parksDao.getParkById(parkId);
+    const result = await parksDao.deleteParkById(parkId);
     if (!result) {
-      errorBuilder(res, 404, 'A park with the specified ID was not found.');
-    } else {
-      res.send(result);
+      return errorBuilder(res, 404, 'A park with the specified ID was not found.');
     }
+    return res.status(204).send(result);
   } catch (err) {
-    errorHandler(res, err);
+    return errorHandler(res, err);
   }
 };
 

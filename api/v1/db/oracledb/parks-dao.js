@@ -237,6 +237,26 @@ const postParks = async (parkBody) => {
 };
 
 /**
+ * @param {string} id Unique park ID
+ * @returns {Promise<object>} Promise object represents a specific park or return undefined if term
+ *                            is not found
+ */
+const deleteParkById = async (id) => {
+  const sqlParams = {
+    parkId: id,
+  };
+  const sqlQuery = 'DELETE FROM PARKS WHERE ID = :parkId';
+  const connection = await conn.getConnection();
+  try {
+    const result = await connection.execute(sqlQuery, sqlParams, { autoCommit: true });
+    if (result.rowsAffected === 0) return undefined;
+    return result;
+  } finally {
+    connection.close();
+  }
+};
+
+/*
  * @summary Patch parks
  * @param {string} id The id of the pack to be patched
  * @param {object} body park body object with fields to be patched
@@ -261,5 +281,6 @@ module.exports = {
   getParks,
   getParkById,
   postParks,
+  deleteParkById,
   patchParkById,
 };

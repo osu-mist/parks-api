@@ -6,9 +6,7 @@ const { errorHandler, errorBuilder } = appRoot.require('errors/errors');
 
 /**
  * @summary Get parks
- * @param {object} req request object
- * @param {object} res response object
- * @returns {object} sends result from dao unless an error is caught
+ * @type RequestHandler
  */
 const get = async (req, res) => {
   try {
@@ -21,9 +19,7 @@ const get = async (req, res) => {
 
 /**
  * @summary Post parks
- * @param {object} req request object
- * @param {object} res response object
- * @returns {object} sends result from dao unless an error is caught
+ * @type RequestHandler
  */
 const post = async (req, res) => {
   try {
