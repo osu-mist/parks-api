@@ -11,7 +11,7 @@ const getParameters = openapi.paths['/parks'].get.parameters;
 const { definitions } = openapi;
 const amenityEnum = definitions.ParkResource.properties.attributes.properties.amenities.items.enum;
 
-const sql = `
+const getParkSql = `
   SELECT ID AS "id",
   NAME AS "name",
   STREET_ADDRESS AS "streetAddress",
@@ -71,6 +71,40 @@ const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, 
   return `${returnString},`;
 }, '');
 
+// generates sql query for patchParks
+const getPatchSqlQuery = (body) => {
+  const { attributes: { location, amenities, name }, relationships } = body.data;
+  const patchFields = [];
+  if (name) patchFields.push('NAME = :name');
+  if (relationships.owner.data.id) patchFields.push('OWNER_ID = :ownerId');
+  _.forEach(location, (value, key) => {
+    patchFields.push(`${_.snakeCase(key).toUpperCase()} = :${key}`);
+  });
+  _.forEach(amenityEnum, (value) => {
+    patchFields.push(`${_.snakeCase(value).toUpperCase()} = ${amenities.includes(value) ? 1 : 0}`);
+  });
+  const sqlQuery = `
+    UPDATE PARKS SET
+    ${patchFields.join(', ')}
+    WHERE ID = :id
+`;
+  return sqlQuery;
+};
+
+// generates sql binds for patchParks
+const getPatchSqlBinds = (body) => {
+  const { attributes: { location, name }, relationships, id } = body.data;
+  const sqlBinds = {};
+  _.forEach(location, (value, key) => {
+    sqlBinds[key] = value;
+  });
+  sqlBinds.id = id;
+  sqlBinds.ownerId = relationships.owner.data.id;
+  sqlBinds.name = name;
+  return sqlBinds;
+};
+
+
 /**
  * @param {object} queries queries object containing queries for endpoint
  * @returns {Promise<object[]>} Promise object represents a list of parks
@@ -92,7 +126,7 @@ const getParks = async (queries) => {
     ${sqlParams.state ? 'AND STATE = :state' : ''}
     ${sqlParams.zip ? 'AND ZIP = :zip' : ''}
   `;
-  const sqlQuery = `${sql}${queryParams}`;
+  const sqlQuery = `${getParkSql}${queryParams}`;
   const connection = await conn.getConnection();
   try {
     const { rows } = await connection.execute(sqlQuery, sqlParams);
@@ -115,7 +149,7 @@ const getParkById = async (id) => {
   const queryParams = `
     AND ID = :parkId
   `;
-  const sqlQuery = `${sql}${queryParams}`;
+  const sqlQuery = `${getParkSql}${queryParams}`;
   const connection = await conn.getConnection();
   try {
     const { rows } = await connection.execute(sqlQuery, sqlParams);
@@ -222,9 +256,31 @@ const deleteParkById = async (id) => {
   }
 };
 
+/*
+ * @summary Patch parks
+ * @param {string} id The id of the pack to be patched
+ * @param {object} body park body object with fields to be patched
+ * @returns {Promise<object>} Promise object represents a specific park or return undefined if term
+ *                            is not found
+ */
+const patchParkById = async (id, body) => {
+  const sqlBinds = getPatchSqlBinds(body);
+  const sqlQuery = getPatchSqlQuery(body);
+  const connection = await conn.getConnection();
+  try {
+    const rawPark = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
+    if (rawPark.rowsAffected === 0) return undefined;
+    const result = getParkById(id);
+    return result;
+  } finally {
+    connection.close();
+  }
+};
+
 module.exports = {
   getParks,
   getParkById,
   postParks,
   deleteParkById,
+  patchParkById,
 };

@@ -27,15 +27,17 @@ const get = async (req, res) => {
  */
 const patch = async (req, res) => {
   try {
-    const { parkId } = req.params;
-    const result = await parksDao.getParkById(parkId);
-    if (!result) {
-      errorBuilder(res, 404, 'A park with the specified ID was not found.');
-    } else {
-      res.send(result);
+    const { body, params: { parkId } } = req;
+    if (body.data.id !== parkId) {
+      return errorBuilder(res, 409, ['ID in patch body does not match ID in path.']);
     }
+    const result = await parksDao.patchParkById(parkId, body);
+    if (!result) {
+      return errorBuilder(res, 404, 'A park with the specified ID was not found.');
+    }
+    return res.send(result);
   } catch (err) {
-    errorHandler(res, err);
+    return errorHandler(res, err);
   }
 };
 
