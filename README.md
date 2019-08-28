@@ -1,6 +1,8 @@
-# Express API Skeleton ![version](https://img.shields.io/badge/version-v1-blue.svg) [![openapi](https://img.shields.io/badge/openapi-2.0-green.svg)](./openapi.yaml) ![node](https://img.shields.io/badge/node-10.13-brightgreen.svg)
+# Parks API ![version](https://img.shields.io/badge/version-v1-blue.svg) [![openapi](https://img.shields.io/badge/openapi-2.0-green.svg)](./openapi.yaml) ![node](https://img.shields.io/badge/node-10.13-brightgreen.svg)
 
-Skeleton for Express APIs. API definition is contained in the [OpenAPI specification](./openapi.yaml).
+## Overview
+
+Parks-api is a learning project to explore API design and development. The API grants access to a database of public parks where parks can be created, updated, and queried.
 
 ## Getting Started
 
@@ -100,53 +102,6 @@ $ npm test
     $ cp api/v1/serializers/pets-serializer.js api/v1/serializers/<resources>-serializer.js
     ```
 
-### Base an existing project off / Incorporate updates from the skeleton
-
-1. Add the skeleton as a remote:
-
-    ```shell
-    $ git remote add skeleton git@github.com:osu-mist/express-api-skeleton.git
-    ```
-
-2. Fetch updates from the skeleton:
-
-    ```shell
-    $ git fetch skeleton
-    ```
-
-3. Merge the skeleton into your codebase:
-
-    ```shell
-    $ git checkout feature/CO-1234-branch
-    $ git merge skeleton/master
-    $ git commit -v
-    ```
-
-## Getting data source from HTTP endpoints
-
-The following instructions show you how to get data from external endpoints for use in the API.
-
-1. Define `dataSources/http` section in the `/config/default.yaml` to be like:
-
-    ```yaml
-    dataSources:
-      dataSources: ['http']
-      http:
-        url: 'https://api.example.com'
-    ```
-
-2. Copy [api/v1/db/http/pets-dao-example.js](api/v1/db/http/pets-dao-example.js) to `api/v1/db/http/<resources>-dao.js` and modify as necessary:
-
-    ```shell
-    $ cp api/v1/db/http/pets-dao-example.js api/v1/db/http/<resources>-dao.js
-    ```
-
-3. Make sure to require the correct path for the new DAO file at path handlers files:
-
-    ```js
-    const petsDao = require('../db/http/<resources>-dao');
-    ```
-
 ## Getting data source from the Oracle Database
 
 The following instructions show you how to connect the API to an Oracle database.
@@ -211,56 +166,6 @@ The following instructions show you how to connect the API to an Oracle database
 
     ```js
     const petsDao = require('../db/oracledb/<resources>-dao');
-    ```
-
-## Getting data source from an AWS S3 bucket
-
-The following instructions show you how to get data from an AWS S3 bucket
-
-1. Install [aws-sdk](https://www.npmjs.com/package/aws-sdk) via package management:
-
-    ```shell
-    # Using yarn (recommended)
-    $ yarn add aws-sdk
-
-    # Using npm
-    $ npm install aws-sdk
-    ```
-
-2. Define the `dataSources` field in `config/default.yaml` to be like:
-
-    ```yaml
-    dataSources:
-      dataSources: ['awsS3']
-      awsS3:
-        bucket: BUCKET_NAME
-        apiVersion: API_VERSION
-        accessKeyId: ACCESS_KEY_ID
-        secretAccessKey: SECRET_ACCESS_KEY
-        region: REGION
-        endpoint: null
-        s3ForcePathStyle: false
-    ```
-
-    **Options for configuration**:
-
-    | Option | Description |
-    | ------ | ----------- |
-    | `bucket` | The name of the AWS S3 bucket to use |
-    | `apiVersion` | Version of the S3 API. Example: `'2006-03-01'` |
-    | `endpoint` | When using a local or proxy S3 instance, set this value to the host URL. Example: `http://localhost:9000` |
-    | `s3ForcePathStyle` | Set to `true` if using a local or proxy S3 instance |
-
-3. Copy [api/v1/db/awsS3/pets-dao-example.js](api/v1/db/awsS3/pets-dao-example.js) to `api/v1/db/awsS3/<resources>-dao.js` and modify as necessary:
-
-    ```shell
-    $ cp api/v1/db/awsS3/pets-dao-example.js api/v1/db/awsS3/<resources>-dao.js
-    ```
-
-4. Make sure to require the correct path for the new DAO file at path handlers files:
-
-    ```js
-    const petsDao = require('../db/awsS3/<resources>-dao');
     ```
 
 ## Docker
