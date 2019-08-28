@@ -5,7 +5,7 @@ const ownersDao = require('../../db/oracledb/owners-dao');
 const { errorBuilder, errorHandler } = appRoot.require('errors/errors');
 
 /**
- * @summary Get park by unique ID
+ * @summary Get owner by unique ID
  * @param {object} req request object
  * @param {object} res response object
  * @returns {object} sends result form dao unless an error is caught
@@ -24,7 +24,7 @@ const get = async (req, res) => {
 };
 
 /**
- * @summary patch parks
+ * @summary patch owner
  * @param {object} req request object
  * @param {object} res response object
  * @returns {object} response
@@ -32,7 +32,7 @@ const get = async (req, res) => {
 const patch = async (req, res) => ({ req, res });
 
 /**
- * @summary Post parks
+ * @summary Post owner
  * @param {object} req request object
  * @param {object} res response object
  * @returns {object} response
