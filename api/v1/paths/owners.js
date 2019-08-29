@@ -2,7 +2,7 @@ const appRoot = require('app-root-path');
 
 const ownersDao = require('../db/oracledb/owners-dao');
 
-const { errorHandler } = appRoot.require('errors/errors');
+const { errorHandler, errorBuilder } = appRoot.require('errors/errors');
 
 /**
  * @summary Get owners
@@ -28,6 +28,7 @@ const get = async (req, res) => {
 const post = async (req, res) => {
   try {
     const result = await ownersDao.postOwner(req.body);
+    if (!result) return errorBuilder(res, 400, ['Values may not be an empty string']);
     return res.send(result);
   } catch (err) {
     return errorHandler(res, err);
