@@ -397,7 +397,7 @@ definitions:
     required: [data]
     properties:
       data:
-        required: [id, type, attributes]
+        required: [id, type]
         properties:
           id: *ownerId
           type: *ownerType
