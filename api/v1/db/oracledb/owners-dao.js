@@ -70,11 +70,12 @@ const patchOwnerById = async (id, ownerBody) => {
   const sqlBinds = { ownerId: id };
   if (attributes) sqlBinds.ownerName = attributes.name;
   const sqlQuery = 'UPDATE OWNERS SET NAME = :ownerName WHERE ID = :ownerID';
+  if (_.values(sqlBinds).includes('')) return undefined;
   const connection = await conn.getConnection();
   try {
     if (_.isEmpty(attributes)) return getOwnerById(id);
     const rawOwner = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
-    if (rawOwner.rowsAffected === 0) return undefined;
+    if (rawOwner.rowsAffected === 0) return rawOwner;
     return getOwnerById(id);
   } finally {
     connection.close();

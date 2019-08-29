@@ -36,7 +36,8 @@ const patch = async (req, res) => {
       return errorBuilder(res, 409, ['ID in patch body does not match ID in path.']);
     }
     const result = await ownersDao.patchOwnerById(ownerId, body);
-    if (!result) {
+    if (!result) return errorBuilder(res, 400, ['Values may not be empty strings.']);
+    if (result.rowsAffected === 0) {
       return errorBuilder(res, 404, 'An owner with the specified ID was not found.');
     }
     return res.send(result);
