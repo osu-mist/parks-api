@@ -73,16 +73,23 @@ const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, 
 
 // generates sql query for patchParks
 const getPatchSqlQuery = (body) => {
-  const { attributes: { location, amenities, name }, relationships } = body.data;
+  const { attributes, relationships } = body.data;
+  let location;
+  let amenities;
+  let name;
   const patchFields = [];
+  if (attributes) ({ location, amenities, name } = attributes);
   if (name) patchFields.push('NAME = :name');
-  if (relationships.owner.data.id) patchFields.push('OWNER_ID = :ownerId');
+  if (relationships) patchFields.push('OWNER_ID = :ownerId');
   _.forEach(location, (value, key) => {
     patchFields.push(`${_.snakeCase(key).toUpperCase()} = :${key}`);
   });
-  _.forEach(amenityEnum, (value) => {
-    patchFields.push(`${_.snakeCase(value).toUpperCase()} = ${amenities.includes(value) ? 1 : 0}`);
-  });
+  if (amenities) {
+    _.forEach(amenityEnum, (value) => {
+      patchFields.push(`${_.snakeCase(value).toUpperCase()} = ${amenities.includes(value) ? 1 : 0}`);
+    });
+  }
+  if (_.isEmpty(patchFields)) return undefined;
   const sqlQuery = `
     UPDATE PARKS SET
     ${patchFields.join(', ')}
@@ -93,14 +100,17 @@ const getPatchSqlQuery = (body) => {
 
 // generates sql binds for patchParks
 const getPatchSqlBinds = (body) => {
-  const { attributes: { location, name }, relationships, id } = body.data;
+  const { attributes, relationships, id } = body.data;
+  let location;
+  let name;
   const sqlBinds = {};
+  if (attributes) ({ location, name } = attributes);
   _.forEach(location, (value, key) => {
     sqlBinds[key] = value;
   });
   sqlBinds.id = id;
-  sqlBinds.ownerId = relationships.owner.data.id;
-  sqlBinds.name = name;
+  if (relationships) sqlBinds.ownerId = relationships.owner.data.id;
+  if (name) sqlBinds.name = name;
   return sqlBinds;
 };
 
@@ -256,7 +266,7 @@ const deleteParkById = async (id) => {
   }
 };
 
-/*
+/**
  * @summary Patch parks
  * @param {string} id The id of the pack to be patched
  * @param {object} body park body object with fields to be patched
@@ -268,10 +278,10 @@ const patchParkById = async (id, body) => {
   const sqlQuery = getPatchSqlQuery(body);
   const connection = await conn.getConnection();
   try {
+    if (!sqlQuery) return getParkById(id);
     const rawPark = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
     if (rawPark.rowsAffected === 0) return undefined;
-    const result = getParkById(id);
-    return result;
+    return getParkById(id);
   } finally {
     connection.close();
   }

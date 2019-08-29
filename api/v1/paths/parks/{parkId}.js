@@ -37,6 +37,9 @@ const patch = async (req, res) => {
     }
     return res.send(result);
   } catch (err) {
+    if (err.errorNum === 2291) {
+      return errorBuilder(res, 404, 'An owner with the specified ID was not found');
+    }
     return errorHandler(res, err);
   }
 };
