@@ -256,7 +256,7 @@ const deleteParkById = async (id) => {
   }
 };
 
-/*
+/**
  * @summary Patch parks
  * @param {string} id The id of the pack to be patched
  * @param {object} body park body object with fields to be patched
