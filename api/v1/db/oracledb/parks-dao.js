@@ -110,26 +110,26 @@ const getPatchSqlBinds = (body) => {
  * @returns {Promise<object[]>} Promise object represents a list of parks
  */
 const getParks = async (queries) => {
-  const sqlParams = {};
+  const sqlBinds = {};
 
   // add parameters in request to the sql query not including amenities filters
   _.forEach(getParameters, (key) => {
     if (queries[key.name] && !key.name.includes('amenities')) {
-      sqlParams[tidyKeyName(key.name)] = queries[key.name];
+      sqlBinds[tidyKeyName(key.name)] = queries[key.name];
     }
   });
   const queryParams = `
     ${queries['filter[amenities][some]'] ? parseAmenities(queries['filter[amenities][some]'], 'some') : ''}
     ${queries['filter[amenities][all]'] ? parseAmenities(queries['filter[amenities][all]'], 'all') : ''}
-    ${sqlParams.name ? 'AND NAME = :name' : ''}
-    ${sqlParams.city ? 'AND CITY = :city' : ''}
-    ${sqlParams.state ? 'AND STATE = :state' : ''}
-    ${sqlParams.zip ? 'AND ZIP = :zip' : ''}
+    ${sqlBinds.name ? 'AND NAME = :name' : ''}
+    ${sqlBinds.city ? 'AND CITY = :city' : ''}
+    ${sqlBinds.state ? 'AND STATE = :state' : ''}
+    ${sqlBinds.zip ? 'AND ZIP = :zip' : ''}
   `;
   const sqlQuery = `${getParkSql}${queryParams}`;
   const connection = await conn.getConnection();
   try {
-    const { rows } = await connection.execute(sqlQuery, sqlParams);
+    const { rows } = await connection.execute(sqlQuery, sqlBinds);
     const serializedParks = serializeParks(rows, queries);
     return serializedParks;
   } finally {
@@ -143,7 +143,7 @@ const getParks = async (queries) => {
  *                            is not found
  */
 const getParkById = async (id) => {
-  const sqlParams = {
+  const sqlBinds = {
     parkId: id,
   };
   const queryParams = `
@@ -152,7 +152,7 @@ const getParkById = async (id) => {
   const sqlQuery = `${getParkSql}${queryParams}`;
   const connection = await conn.getConnection();
   try {
-    const { rows } = await connection.execute(sqlQuery, sqlParams);
+    const { rows } = await connection.execute(sqlQuery, sqlBinds);
     if (_.isEmpty(rows)) {
       return undefined;
     }
@@ -225,6 +225,7 @@ const postParks = async (parkBody) => {
     )
     RETURNING ID INTO :outId
   `;
+  if (_.values(sqlBinds).includes('')) return undefined;
   const connection = await conn.getConnection();
   try {
     const rawParks = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
@@ -256,7 +257,7 @@ const deleteParkById = async (id) => {
   }
 };
 
-/*
+/**
  * @summary Patch parks
  * @param {string} id The id of the pack to be patched
  * @param {object} body park body object with fields to be patched
@@ -266,10 +267,11 @@ const deleteParkById = async (id) => {
 const patchParkById = async (id, body) => {
   const sqlBinds = getPatchSqlBinds(body);
   const sqlQuery = getPatchSqlQuery(body);
+  if (_.values(sqlBinds).includes('')) return undefined;
   const connection = await conn.getConnection();
   try {
     const rawPark = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
-    if (rawPark.rowsAffected === 0) return undefined;
+    if (rawPark.rowsAffected === 0) return rawPark;
     const result = getParkById(id);
     return result;
   } finally {

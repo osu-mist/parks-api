@@ -24,6 +24,7 @@ const get = async (req, res) => {
 const post = async (req, res) => {
   try {
     const result = await parksDao.postParks(req.body);
+    if (!result) return errorBuilder(res, 400, ['Values may not be an empty string']);
     res.set('Location', result.data.links.self);
     return res.status(201).send(result);
   } catch (err) {
