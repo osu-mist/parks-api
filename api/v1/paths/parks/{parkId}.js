@@ -32,7 +32,7 @@ const patch = async (req, res) => {
       return errorBuilder(res, 409, ['ID in patch body does not match ID in path.']);
     }
     const result = await parksDao.patchParkById(parkId, body);
-    if (!result) {
+    if (result.rowsAffected === 0) {
       return errorBuilder(res, 404, 'A park with the specified ID was not found.');
     }
     return res.send(result);
