@@ -69,7 +69,6 @@ const postOwner = async (ownerBody) => {
     VALUES (:ownerName)
     RETURNING ID INTO :outId
   `;
-  if (_.values(sqlBinds).includes('')) return undefined;
   const connection = await conn.getConnection();
   try {
     const rawOwners = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
