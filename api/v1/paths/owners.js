@@ -28,7 +28,8 @@ const get = async (req, res) => {
 const post = async (req, res) => {
   try {
     const result = await ownersDao.postOwner(req.body);
-    return res.send(result);
+    res.set('Location', result.data.links.self);
+    return res.status(201).send(result);
   } catch (err) {
     return errorHandler(res, err);
   }
