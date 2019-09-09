@@ -37,6 +37,17 @@ const patch = async (req, res) => ({ req, res });
  * @param {object} res response object
  * @returns {object} response
  */
-const deleteOwner = async (req, res) => ({ req, res });
+const deleteOwner = async (req, res) => {
+  try {
+    const { ownerId } = req.params;
+    const result = await ownersDao.deleteOwnerById(ownerId);
+    if (!result) {
+      return errorBuilder(res, 404, 'An owner with the specified ID was not found.');
+    }
+    return res.status(204).send(result);
+  } catch (err) {
+    return errorHandler(res, err);
+  }
+};
 
 module.exports = { get, patch, delete: deleteOwner };
