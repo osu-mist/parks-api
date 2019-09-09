@@ -372,6 +372,7 @@ definitions:
     properties:
       id: &ownerId
         type: string
+        minLength: 1
         example: '0001'
         description: A unique ID of a park owner
       type: &ownerType
@@ -383,6 +384,7 @@ definitions:
         properties:
           ownerName: &ownerName
             type: string
+            minLength: 1
             description: Name of park owner / organization
             example: City of Corvallis
   PostOwnerModel:
@@ -409,6 +411,7 @@ definitions:
     properties:
       id: &parkId
         type: string
+        minLength: 1
         example: '0001'
         description: A unique ID of park
       type: &parkType
@@ -428,6 +431,7 @@ definitions:
         properties:
           name: &parkName
             type: string
+            minLength: 1 
             description: Name of Park
             example: Avery Park
           location:
@@ -436,10 +440,12 @@ definitions:
             properties:
               streetAddress: &streetAddress
                 type: string
+                minLength: 1
                 description: Park address
                 example: '1200 SW Avery Park Dr.'
               city: &city
                 type: string
+                minLength: 1
                 description: City where the park is located
                 example: Corvallis
               state: &state

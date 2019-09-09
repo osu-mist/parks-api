@@ -225,7 +225,6 @@ const postParks = async (parkBody) => {
     )
     RETURNING ID INTO :outId
   `;
-  if (_.values(sqlBinds).includes('')) return undefined;
   const connection = await conn.getConnection();
   try {
     const rawParks = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
@@ -267,7 +266,6 @@ const deleteParkById = async (id) => {
 const patchParkById = async (id, body) => {
   const sqlBinds = getPatchSqlBinds(body);
   const sqlQuery = getPatchSqlQuery(body);
-  if (_.values(sqlBinds).includes('')) return undefined;
   const connection = await conn.getConnection();
   try {
     const rawPark = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
