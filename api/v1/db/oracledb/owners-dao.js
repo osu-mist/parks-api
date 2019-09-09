@@ -68,9 +68,8 @@ const postOwner = async ownerBody => ownerBody;
 const patchOwnerById = async (id, ownerBody) => {
   const { attributes } = ownerBody.data;
   const sqlBinds = { ownerId: id };
-  if (attributes) sqlBinds.ownerName = attributes.name;
+  if (attributes) sqlBinds.ownerName = attributes.ownerName;
   const sqlQuery = 'UPDATE OWNERS SET NAME = :ownerName WHERE ID = :ownerID';
-  if (_.values(sqlBinds).includes('')) return undefined;
   const connection = await conn.getConnection();
   try {
     if (_.isEmpty(attributes)) return getOwnerById(id);
