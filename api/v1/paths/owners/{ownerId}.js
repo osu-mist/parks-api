@@ -47,8 +47,7 @@ const deleteOwner = async (req, res) => {
     return res.status(204).send(result);
   } catch (err) {
     if (err.errorNum === 2292) {
-      return errorBuilder(res, 409, 'This owner has one or more parks associated with it. '
-      + 'Please change the owner of each of the parks before deleting the owner.');
+      return errorBuilder(res, 409, 'This owner has one or more parks associated with it. Please change the owner of each of the parks before deleting the owner.');
     }
     return errorHandler(res, err);
   }
