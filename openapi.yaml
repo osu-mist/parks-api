@@ -382,7 +382,7 @@ definitions:
       attributes: &ownerAttributes
         required: [ownerName]
         properties:
-          ownerName: &ownerName
+          ownerName:
             type: string
             minLength: 1
             description: Name of park owner / organization
@@ -403,9 +403,7 @@ definitions:
         properties:
           id: *ownerId
           type: *ownerType
-          attributes:
-            properties:
-              ownerName: *ownerName
+          attributes: *ownerAttributes
   ParkResource:
     required: [id, type, links, attributes, relationships]
     properties:
