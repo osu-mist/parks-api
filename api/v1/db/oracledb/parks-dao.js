@@ -280,7 +280,7 @@ const patchParkById = async (id, body) => {
 /**
  * @summary Get park by owner Id
  * @param {string} id Unique owner ID
- * @returns {Promise<object>} Promise object represents a specific owner or return undefined if term
+ * @returns {Promise<object>} Promise object represents an owner's parks or return undefined if term
  *                            is not found
  */
 const getParksByOwnerId = async (id) => {
