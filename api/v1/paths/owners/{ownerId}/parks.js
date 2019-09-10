@@ -5,7 +5,7 @@ const parksDao = require('../../../db/oracledb/parks-dao');
 const { errorBuilder, errorHandler } = appRoot.require('errors/errors');
 
 /**
- * @summary patch owner
+ * @summary get parks by owner id
  * @param {object} req request object
  * @param {object} res response object
  * @returns {object} response
@@ -13,7 +13,7 @@ const { errorBuilder, errorHandler } = appRoot.require('errors/errors');
 const get = async (req, res) => {
   try {
     const { ownerId } = req.params;
-    const result = await parksDao.getParkByOwnerId(ownerId);
+    const result = await parksDao.getParksByOwnerId(ownerId);
     if (!result) {
       return errorBuilder(res, 404, 'An owner with the specified ID was not found.');
     }
