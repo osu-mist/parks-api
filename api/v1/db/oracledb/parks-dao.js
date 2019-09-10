@@ -290,7 +290,8 @@ const getParksByOwnerId = async (id) => {
   try {
     // check if owner exists
     const ownerTest = await connection.execute('SELECT COUNT(1) FROM OWNERS WHERE ID = :ownerId', sqlBinds);
-    if (_.isEmpty(ownerTest.rows)) return undefined;
+    // return undefined if owner doesn't exist
+    if (ownerTest.rows[0]['COUNT(1)'] === '0') return undefined;
     const { rows } = await connection.execute(sqlQuery, sqlBinds);
     const serializedParks = serializeParks(rows);
     serializedParks.links.self = `${apiBaseUrl}/owners/${id}/parks`;
