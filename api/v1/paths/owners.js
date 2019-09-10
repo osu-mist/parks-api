@@ -25,6 +25,14 @@ const get = async (req, res) => {
  * @param {object} res response object
  * @returns {object} sends result from dao unless an error is caught
  */
-const post = async (req, res) => ({ req, res });
+const post = async (req, res) => {
+  try {
+    const result = await ownersDao.postOwner(req.body);
+    res.set('Location', result.data.links.self);
+    return res.status(201).send(result);
+  } catch (err) {
+    return errorHandler(res, err);
+  }
+};
 
 module.exports = { get, post };
