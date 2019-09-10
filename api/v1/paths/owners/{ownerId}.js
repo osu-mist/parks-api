@@ -29,7 +29,21 @@ const get = async (req, res) => {
  * @param {object} res response object
  * @returns {object} response
  */
-const patch = async (req, res) => ({ req, res });
+const patch = async (req, res) => {
+  try {
+    const { body, params: { ownerId } } = req;
+    if (body.data.id !== ownerId) {
+      return errorBuilder(res, 409, 'ID in patch body does not match ID in path.');
+    }
+    const result = await ownersDao.patchOwnerById(ownerId, body);
+    if (result.rowsAffected === 0) {
+      return errorBuilder(res, 404, 'An owner with the specified ID was not found.');
+    }
+    return res.send(result);
+  } catch (err) {
+    return errorHandler(res, err);
+  }
+};
 
 /**
  * @summary Post owner
