@@ -287,10 +287,35 @@ const patchParkById = async (id, body) => {
   }
 };
 
+/**
+ * @summary Get park by owner Id
+ * @param {string} id Unique owner ID
+ * @returns {Promise<object>} Promise object represents an owner's parks or return undefined if term
+ *                            is not found
+ */
+const getParksByOwnerId = async (id) => {
+  const sqlBinds = { ownerId: id };
+  const sqlQuery = `${getParkSql} AND OWNER_ID = :ownerId`;
+  const connection = await conn.getConnection();
+  try {
+    // check if owner exists
+    const ownerTest = await connection.execute('SELECT COUNT(1) FROM OWNERS WHERE ID = :ownerId', sqlBinds);
+    // return undefined if owner doesn't exist
+    if (ownerTest.rows[0]['COUNT(1)'] === '0') return undefined;
+    const { rows } = await connection.execute(sqlQuery, sqlBinds);
+    const serializedParks = serializeParks(rows);
+    serializedParks.links.self = `${apiBaseUrl}/owners/${id}/parks`;
+    return serializedParks;
+  } finally {
+    connection.close();
+  }
+};
+
 module.exports = {
   getParks,
   getParkById,
   postParks,
   deleteParkById,
   patchParkById,
+  getParksByOwnerId,
 };
