@@ -17,6 +17,7 @@ rules:
     - error
     - devDependencies:
       - '**/tests/**/*.test.js'
+      - '**/tests/unit/**/*.js'
       - gulpfile.js
       - '**/aws-operations.js'
   no-unused-expressions: 'off'
