@@ -81,6 +81,27 @@ const postOwner = async (ownerBody) => {
 };
 
 /**
+ * @summary Delete owner by Id
+ * @param {string} id owner Id
+ * @returns {Promise<object>} Promise object represents a specific owner or return undefined if term
+ *                            is not found
+ */
+const deleteOwnerById = async (id) => {
+  const sqlParams = {
+    ownerId: id,
+  };
+  const sqlQuery = 'DELETE FROM OWNERS WHERE ID = :ownerId';
+  const connection = await conn.getConnection();
+  try {
+    const result = await connection.execute(sqlQuery, sqlParams, { autoCommit: true });
+    if (result.rowsAffected === 0) return undefined;
+    return result;
+  } finally {
+    connection.close();
+  }
+};
+
+/**
  * @summary Patch owner by ID
  * @param {string} id The id of the owner to be patched
  * @param {object} ownerBody owner body object with fields to be patched
@@ -107,5 +128,6 @@ module.exports = {
   getOwners,
   getOwnerById,
   postOwner,
+  deleteOwnerById,
   patchOwnerById,
 };
