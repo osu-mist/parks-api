@@ -1,3 +1,4 @@
+const fakeBaseUrl = 'v1';
 const fakeId = 'fakeId';
 const truthyList = [
   0,
@@ -69,16 +70,22 @@ const testCases = {
     expectedResult: { rowsAffected: 1 },
     description: 'with 1 row affected',
   },
-
 };
 
 const rawParks = [{
 
 }];
 
-const rawOwners = [{
-
-}];
+const rawOwners = [
+  {
+    id: fakeId,
+    ownerName: 'ketchup',
+  },
+  {
+    id: fakeId,
+    ownerName: 'mustard',
+  },
+];
 
 const serializedPark = {
 
@@ -136,4 +143,5 @@ module.exports = {
   falseyList,
   truthyList,
   fakeId,
+  fakeBaseUrl,
 };

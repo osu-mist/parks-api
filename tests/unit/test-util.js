@@ -31,7 +31,7 @@ const createConnStub = (testCase) => {
 
 /**
  * @summary Transform the rawData into serializedData.
- * @param {string} resourceType The type of resource.
+ * @param {string} resourceType The tyclearpe of resource.
  * @param {string} resourceId The id of resource.
  * @param {object} resourceAttributes The attribute of the resource.
  * @returns {object} Expected serialized rawData.
@@ -52,7 +52,7 @@ const resourceSchema = (resourceType, resourceId, resourceAttributes) => {
   };
   if (resourceAttributes) {
     resourceAttributes = _.mapKeys(resourceAttributes,
-      (value, key) => _.camelCase(key.toLowerCase()));
+      (value, key) => _.camelCase(key));
     schema.data.attributes = resourceAttributes;
   }
   return schema;
@@ -64,7 +64,7 @@ const resourceSchema = (resourceType, resourceId, resourceAttributes) => {
  * @param {string} def The type of the resource.
  * @returns {object} The schema of the resource to look up.
  */
-const getDefinition = def => openapi.definitions[def].properties.data.properties;
+const getDefinition = def => openapi.definitions[def].properties;
 
 /**
  * @summary Test if a single resource matches the schema in the specification.
