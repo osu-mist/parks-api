@@ -24,16 +24,29 @@ const falseyList = [
 ];
 
 const testCases = {
+  singleResultInList: {
+    testCase: [{}],
+    expectedResult: [{}],
+    description: 'a single result',
+  },
   singleResult: {
     testCase: [{}],
+    expectedResult: {},
     description: 'a single result',
   },
   multiResult: {
     testCase: [{}, {}],
+    expectedResult: [{}, {}],
     description: 'multiple results',
   },
   emptyResult: {
     testCase: [],
+    expectedResult: undefined,
+    description: 'no results',
+  },
+  emptyResultInList: {
+    testCase: [],
+    expectedResult: [],
     description: 'no results',
   },
   noOutId: {
@@ -45,6 +58,16 @@ const testCases = {
     testCase: { outBinds: { outId: fakeId } },
     expectedError: 'Cannot read property \'length\' of undefined',
     description: 'outId is returned without an additional response',
+  },
+  noRowsAffected: {
+    testCase: { rowsAffected: 0 },
+    expectedResult: undefined,
+    description: 'with 0 rows affected',
+  },
+  rowAffected: {
+    testCase: { rowsAffected: 1 },
+    expectedResult: { rowsAffected: 1 },
+    description: 'with 1 row affected',
   },
 
 };
@@ -72,10 +95,22 @@ const serializedOwners = {
 };
 
 const fakeOwnerPatchBody = {
-
+  data: {
+    id: fakeId,
+    type: 'owner',
+    attributes: {
+      ownerName: 'fakeName',
+    },
+  },
 };
-const fakeOwnerPostBody = {
 
+const fakeOwnerPostBody = {
+  data: {
+    type: 'owner',
+    attributes: {
+      ownerName: 'fakeName',
+    },
+  },
 };
 
 const fakeParkPatchBody = {

@@ -38,9 +38,7 @@ const getOwnerById = async (id) => {
   const connection = await conn.getConnection();
   try {
     const { rows } = await connection.execute(sqlQuery, sqlParams);
-    if (_.isEmpty(rows)) {
-      return undefined;
-    }
+    if (_.isEmpty(rows)) return undefined;
     if (rows.length > 1) {
       throw new Error('Expect a single object but got multiple results.');
     } else {
@@ -73,7 +71,7 @@ const postOwner = async (ownerBody) => {
   try {
     const rawOwners = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
     const result = await getOwnerById(rawOwners.outBinds.outId[0]);
-    result.links.self = resourcePathLink(apiBaseUrl, 'owners');
+    if (result.links) result.links.self = resourcePathLink(apiBaseUrl, 'owners');
     return result;
   } finally {
     connection.close();
@@ -117,7 +115,7 @@ const patchOwnerById = async (id, ownerBody) => {
   try {
     if (_.isEmpty(attributes)) return getOwnerById(id);
     const rawOwner = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
-    if (rawOwner.rowsAffected === 0) return rawOwner;
+    if (rawOwner.rowsAffected === 0) return undefined;
     return getOwnerById(id);
   } finally {
     connection.close();
