@@ -30,7 +30,7 @@ const createConnStub = (testCase) => {
 };
 
 /**
- * @summary Transoform the rawData into serializedData.
+ * @summary Transform the rawData into serializedData.
  * @param {string} resourceType The type of resource.
  * @param {string} resourceId The id of resource.
  * @param {object} resourceAttributes The attribute of the resource.
@@ -64,10 +64,7 @@ const resourceSchema = (resourceType, resourceId, resourceAttributes) => {
  * @param {string} def The type of the resource.
  * @returns {object} The schema of the resource to look up.
  */
-const getDefinition = (def) => {
-  const result = openapi.definitions[def].properties.data.properties;
-  return result;
-};
+const getDefinition = def => openapi.definitions[def].properties.data.properties;
 
 /**
  * @summary Test if a single resource matches the schema in the specification.
