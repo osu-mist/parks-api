@@ -1,28 +1,5 @@
 const fakeBaseUrl = 'v1';
 const fakeId = 'fakeId';
-const truthyList = [
-  0,
-  1,
-  'a',
-  'abc',
-  '0',
-  'false',
-  [],
-  [1, 2, 3],
-  {
-    a: 'b',
-  },
-  {},
-  () => {},
-];
-
-const falseyList = [
-  false,
-  '',
-  null,
-  undefined,
-  NaN,
-];
 
 const testCases = {
   singleResultInList: {
@@ -87,20 +64,6 @@ const rawOwners = [
   },
 ];
 
-const serializedPark = {
-
-};
-
-const serializedParks = {
-};
-
-const serializedOwner = {
-};
-
-const serializedOwners = {
-
-};
-
 const fakeOwnerPatchBody = {
   data: {
     id: fakeId,
@@ -133,15 +96,9 @@ module.exports = {
   fakeParkPostBody,
   fakeOwnerPostBody,
   fakeOwnerPatchBody,
-  serializedOwners,
-  serializedOwner,
-  serializedParks,
-  serializedPark,
   rawOwners,
   rawParks,
   testCases,
-  falseyList,
-  truthyList,
   fakeId,
   fakeBaseUrl,
 };

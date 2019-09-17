@@ -36,15 +36,4 @@ describe('Test owners-serializer', () => {
       expect(value.attributes).to.have.all.keys(_.keys(ownerResourceDef.attributes.properties));
     });
   });
-
-  /*
-  it('serializeOwner should be rejected if given null arguments', () => {
-    expect(serializeOwner(null)).to.throw(Error, 'Cannot read property \'id\' of null');
-  });
-
-  it('serializeOwners should be rejected if given null arguments', () => {
-    const serializedOwners = serializeOwners(null);
-    expect(serializedOwners.data).to.be.null;
-  });
-  */
 });
