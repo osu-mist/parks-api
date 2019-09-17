@@ -23,6 +23,16 @@ chai.use(chaiExclude);
 chai.use(chaiAsPromised);
 
 let ownersDao;
+const {
+  singleResultInList,
+  multiResult,
+  emptyResultInList,
+  singleResult,
+  emptyResult,
+  noRowsAffected,
+  rowAffected,
+  noOutId,
+} = testCases;
 
 describe('Test owners-dao', () => {
   beforeEach(() => {
@@ -41,12 +51,11 @@ describe('Test owners-dao', () => {
   afterEach(() => sinon.restore());
 
   describe('Test getOwners', () => {
-    const { singleResultInList, multiResult, emptyResultInList } = testCases;
     const testCaseList = [singleResultInList, multiResult, emptyResultInList];
     _.forEach(testCaseList, ({ testCase, expectedResult, description }) => {
       it(`getOwners should be fulfilled with ${description}`, () => {
         createConnStub({ rows: testCase });
-        const result = ownersDao.getOwners(fakeId);
+        const result = ownersDao.getOwners({});
         return result.should
           .eventually.be.fulfilled
           .and.deep.equal(expectedResult);
@@ -55,7 +64,7 @@ describe('Test owners-dao', () => {
   });
 
   describe('Test getOwnerById', () => {
-    const testCaseList = [testCases.singleResult, testCases.emptyResult];
+    const testCaseList = [singleResult, emptyResult];
     _.forEach(testCaseList, ({ testCase, expectedResult, description }) => {
       it(`getOwnerById should be fulfilled with ${description}`, () => {
         createConnStub({ rows: testCase });
@@ -67,11 +76,8 @@ describe('Test owners-dao', () => {
     });
 
     it('getOwnerById should be rejected when multiple values are returned', () => {
-      const { testCase } = testCases.multiResult;
       const error = 'Expect a single object but got multiple results';
-
-      createConnStub({ rows: testCase });
-
+      createConnStub({ rows: multiResult.testCase });
       const result = ownersDao.getOwnerById(fakeId);
       return result.should.eventually.be.rejectedWith(Error, error);
     });
@@ -88,7 +94,8 @@ describe('Test owners-dao', () => {
     });
 
     it('postOwner should be fulfilled with singleResult', () => {
-      createConnStub({ rows: [{}], outBinds: { outId: 1 } });
+      const connStub = createConnStub({ outBinds: { outId: [1] }, rowsAffected: 1 });
+      connStub.executeStub.onSecondCall().returns({ rows: [{}] });
       const result = ownersDao.postOwner(fakeOwnerPostBody);
       return result.should
         .eventually.be.fulfilled
@@ -96,15 +103,15 @@ describe('Test owners-dao', () => {
     });
 
     it('postOwner should be rejected when outId is not returned', () => {
-      createConnStub(testCases.noOutId);
+      createConnStub(noOutId.testCase);
       const result = ownersDao.postOwner(fakeOwnerPostBody);
       return result.should
-        .eventually.be.rejectedWith(Error, testCases.noOutId.expectedError);
+        .eventually.be.rejectedWith(Error, noOutId.expectedError);
     });
   });
 
   describe('Test deleteOwner', () => {
-    const testCaseList = [testCases.rowAffected, testCases.noRowsAffected];
+    const testCaseList = [rowAffected, noRowsAffected];
     _.forEach(testCaseList, ({ testCase, expectedResult, description }) => {
       it(`deleteOwner should be fulfilled with ${description}`, () => {
         createConnStub(testCase);
@@ -125,7 +132,7 @@ describe('Test owners-dao', () => {
         .eventually.be.rejected
         .and.be.an.instanceOf(Error);
     });
-    const testCaseList = [testCases.singleResult, testCases.noRowsAffected];
+    const testCaseList = [singleResult, noRowsAffected];
     _.forEach(testCaseList, ({ testCase, expectedResult, description }) => {
       it(`patchOwner should be fulfilled with ${description}`, () => {
         createConnStub({ rows: testCase });

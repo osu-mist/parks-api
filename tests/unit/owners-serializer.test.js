@@ -1,7 +1,6 @@
 const appRoot = require('app-root-path');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
-// const chaiSubset = require('chai-subset');
 const _ = require('lodash');
 
 const { getDefinition, testSingleResource, testMultipleResources } = require('./test-util.js');
@@ -11,7 +10,6 @@ const ownersSerializer = appRoot.require('api/v1/serializers/owners-serializer')
 
 chai.should();
 chai.use(chaiAsPromised);
-// chai.use(chaiSubset);
 const { expect } = chai;
 
 describe('Test owners-serializer', () => {
