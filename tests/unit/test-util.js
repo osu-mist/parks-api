@@ -34,9 +34,10 @@ const createConnStub = (testCase) => {
  * @param {string} resourceType The tyclearpe of resource.
  * @param {string} resourceId The id of resource.
  * @param {object} resourceAttributes The attribute of the resource.
+ * @param {object} relationships Relationships of the resource
  * @returns {object} Expected serialized rawData.
  */
-const resourceSchema = (resourceType, resourceId, resourceAttributes) => {
+const resourceSchema = (resourceType, resourceId, resourceAttributes, relationships) => {
   const fakeUrl = `/${fakeBaseUrl}/${resourceType}s/${resourceId}`;
   const schema = {
     links: {
@@ -55,6 +56,13 @@ const resourceSchema = (resourceType, resourceId, resourceAttributes) => {
       (value, key) => _.camelCase(key));
     schema.data.attributes = resourceAttributes;
   }
+  if (relationships) {
+    const resourceRelationships = {};
+    _.forEach(relationships, ({ relationshipType, relationshipFields }) => {
+      resourceRelationships[relationshipType] = { data: relationshipFields };
+    });
+    schema.data.relationships = resourceRelationships;
+  }
   return schema;
 };
 
@@ -72,11 +80,14 @@ const getDefinition = def => openapi.definitions[def].properties;
  * @param {string} resourceType The type of the resource.
  * @param {string} resourceId The id of the resource.
  * @param {object} nestedProps The attributes of the resource.
+ * @param {[object]} relationships The relationships of the resource.
  */
-const testSingleResource = (serializedResource, resourceType, resourceId, nestedProps) => {
+const testSingleResource = (serializedResource,
+  resourceType, resourceId, nestedProps, relationships) => {
   expect(serializedResource).to.deep.equal(resourceSchema(resourceType,
     resourceId,
-    nestedProps));
+    nestedProps,
+    relationships));
 };
 
 /**

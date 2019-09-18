@@ -32,6 +32,8 @@ const {
   noOutId,
   emptyBody,
   undefinedBody,
+  undefinedId,
+  idDoesNotExist,
 } = testCases;
 
 describe('Test parks-dao', () => {
@@ -56,9 +58,7 @@ describe('Test parks-dao', () => {
       it(`getParks should be fulfilled with ${description}`, () => {
         createConnStub({ rows: testCase });
         const result = parksDao.getParks({});
-        return result.should
-          .eventually.be.fulfilled
-          .and.deep.equal(expectedResult);
+        return result.should.eventually.be.fulfilled.and.deep.equal(expectedResult);
       });
     });
 
@@ -76,9 +76,7 @@ describe('Test parks-dao', () => {
       it(`getParkById should be fulfilled with ${description}`, () => {
         createConnStub({ rows: testCase });
         const result = parksDao.getParkById(fakeId);
-        return result.should
-          .eventually.be.fulfilled
-          .and.deep.equal(expectedResult);
+        return result.should.eventually.be.fulfilled.and.deep.equal(expectedResult);
       });
     });
 
@@ -95,25 +93,20 @@ describe('Test parks-dao', () => {
       createConnStub();
 
       const result = parksDao.postParks('badBody');
-      return result.should
-        .eventually.be.rejected
-        .and.be.an.instanceOf(TypeError);
+      return result.should.eventually.be.rejected.and.be.an.instanceOf(TypeError);
     });
 
     it('postPark should be fulfilled with singleResult', () => {
       const connStub = createConnStub({ outBinds: { outId: [1] }, rowsAffected: 1 });
       connStub.executeStub.onSecondCall().returns({ rows: [{}] });
       const result = parksDao.postParks(fakeParkPostBody);
-      return result.should
-        .eventually.be.fulfilled
-        .and.deep.equal({});
+      return result.should.eventually.be.fulfilled.and.deep.equal({});
     });
 
     it('postPark should be rejected when outId is not returned', () => {
       createConnStub(noOutId.testCase);
       const result = parksDao.postParks(fakeParkPostBody);
-      return result.should
-        .eventually.be.rejectedWith(Error, noOutId.expectedError);
+      return result.should.eventually.be.rejectedWith(Error, noOutId.expectedError);
     });
   });
 
@@ -123,9 +116,7 @@ describe('Test parks-dao', () => {
       it(`deletePark should be fulfilled with ${description}`, () => {
         createConnStub(testCase);
         const result = parksDao.deleteParkById(fakeId);
-        return result.should
-          .eventually.be.fulfilled
-          .and.deep.equal(expectedResult);
+        return result.should.eventually.be.fulfilled.and.deep.equal(expectedResult);
       });
     });
   });
@@ -143,9 +134,28 @@ describe('Test parks-dao', () => {
       it(`patchPark should be fulfilled with ${description}`, () => {
         createConnStub({ rows: testCase });
         const result = parksDao.patchParkById(fakeId, fakeParkPatchBody);
-        return result.should
-          .eventually.be.fulfilled
-          .and.deep.equal(expectedResult);
+        return result.should.eventually.be.fulfilled.and.deep.equal(expectedResult);
+      });
+    });
+  });
+
+  describe('Test getParksByOwnerId', () => {
+    const fulfilledCaseList = [multiResult, singleResultInList];
+    _.forEach(fulfilledCaseList, ({ testCase, expectedResult, description }) => {
+      it(`getParksByOwnerId should be fulfulled with ${description}`, () => {
+        const connStub = createConnStub({ rows: [{ 'COUNT(1)': '1' }] });
+        connStub.executeStub.onSecondCall().returns({ rows: testCase });
+        const result = parksDao.getParksByOwnerId(fakeId);
+        return result.should.eventually.be.fulfilled.and.deep.equal(expectedResult);
+      });
+    });
+
+    const rejectedCaseList = [undefinedId, idDoesNotExist];
+    _.forEach(rejectedCaseList, ({ testCase, expectedResult, description }) => {
+      it(`getParksByOwnerId should return undefined ${description}`, () => {
+        createConnStub({ rows: [{ 'COUNT(1)': '0' }] });
+        const result = parksDao.getParksByOwnerId(testCase);
+        return result.should.eventually.be.fulfilled.and.deep.equal(expectedResult);
       });
     });
   });
@@ -153,7 +163,7 @@ describe('Test parks-dao', () => {
   describe('Test getPatchSqlQuery', () => {
     const testCaseList = [emptyBody, undefinedBody];
     _.forEach(testCaseList, ({ testCase, expectedResult, description }) => {
-      it(`getPatchSqlQuery should return undefined if ${description}`, () => {
+      it(`getPatchSqlQuery should return undefined ${description}`, () => {
         const result = parksDao.getPatchSqlQuery(testCase);
         return expect(result).to.equal(expectedResult);
       });

@@ -309,7 +309,7 @@ const getParksByOwnerId = async (id) => {
     if (ownerTest.rows[0]['COUNT(1)'] === '0') return undefined;
     const { rows } = await connection.execute(sqlQuery, sqlBinds);
     const serializedParks = serializeParks(rows);
-    serializedParks.links.self = `${apiBaseUrl}/owners/${id}/parks`;
+    if (serializedParks.links) serializedParks.links.self = `${apiBaseUrl}/owners/${id}/parks`;
     return serializedParks;
   } finally {
     connection.close();
