@@ -47,6 +47,16 @@ const testCases = {
     expectedResult: { rowsAffected: 1 },
     description: 'with 1 row affected',
   },
+  emptyBody: {
+    testCase: {},
+    expectedResult: undefined,
+    description: 'if the body is empty',
+  },
+  undefinedBody: {
+    testCase: undefined,
+    expectedResult: undefined,
+    description: 'if the body is not defined',
+  },
 };
 
 const rawParks = [{
@@ -84,11 +94,62 @@ const fakeOwnerPostBody = {
 };
 
 const fakeParkPatchBody = {
-
+  data: {
+    type: 'park',
+    id: '1234',
+    attributes: {
+      name: 'Test',
+      location: {
+        streetAddress: '1200 SW Avery Park Dr.',
+        city: 'Corvallis',
+        state: 'OR',
+        zip: 97333,
+        latitude: 44.552283,
+        longitude: -123.269906,
+      },
+      amenities: [
+        'dogsAllowed',
+        'basketballCourts',
+      ],
+    },
+    relationships: {
+      owner: {
+        data: {
+          type: 'owner',
+          id: '21',
+        },
+      },
+    },
+  },
 };
 
 const fakeParkPostBody = {
-
+  data: {
+    type: 'park',
+    attributes: {
+      name: 'Test',
+      location: {
+        streetAddress: '1200 SW Avery Park Dr.',
+        city: 'Corvallis',
+        state: 'OR',
+        zip: 97333,
+        latitude: 44.552283,
+        longitude: -123.269906,
+      },
+      amenities: [
+        'dogsAllowed',
+        'basketballCourts',
+      ],
+    },
+    relationships: {
+      owner: {
+        data: {
+          type: 'owner',
+          id: '21',
+        },
+      },
+    },
+  },
 };
 
 module.exports = {
