@@ -97,15 +97,23 @@ const testSingleResource = (serializedResource,
  * @param {object} rawResources Raw resources to be used in test.
  * @param {*} resourceType The type of the resource.
  * @param {*} resourceKey The id of the resource.
+ * @param {object} relationships The relationships of the resource.
  */
-const testMultipleResources = (serializedResources, rawResources, resourceType, resourceKey) => {
+const testMultipleResources = (serializedResources,
+  rawResources, resourceType, resourceKey, relationships) => {
   expect(serializedResources).to.have.all.keys('data', 'links');
   expect(serializedResources.data).to.be.an('array');
-  _.zipWith(serializedResources.data, rawResources, (a, b) => {
-    expect(a).to.deep.equal(resourceSchema(resourceType,
-      b[resourceKey],
-      _.omit(b, resourceKey)).data);
-  });
+  for (let i = 0; i < serializedResources.data.length; i += 1) {
+    let schema;
+    if (relationships) {
+      schema = resourceSchema(resourceType, rawResources[i][resourceKey], _.omit(rawResources[i],
+        resourceKey), [relationships[i]]).data;
+    } else {
+      schema = resourceSchema(resourceType, rawResources[i][resourceKey],
+        _.omit(rawResources[i], resourceKey)).data;
+    }
+    expect(serializedResources.data[i]).to.deep.equal(schema);
+  }
 };
 
 
