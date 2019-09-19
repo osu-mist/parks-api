@@ -99,23 +99,34 @@ const testSingleResource = (serializedResource,
  * @param {*} resourceKey The id of the resource.
  * @param {object} relationships The relationships of the resource.
  */
-const testMultipleResources = (serializedResources,
-  rawResources, resourceType, resourceKey, relationships) => {
+const testMultipleResources = (
+  serializedResources,
+  rawResources,
+  resourceType,
+  resourceKey,
+  relationships,
+) => {
   expect(serializedResources).to.have.all.keys('data', 'links');
   expect(serializedResources.data).to.be.an('array');
-  for (let i = 0; i < serializedResources.data.length; i += 1) {
+  _.zipWith(rawResources, serializedResources.data, relationships, (a, b, c) => {
     let schema;
     if (relationships) {
-      schema = resourceSchema(resourceType, rawResources[i][resourceKey], _.omit(rawResources[i],
-        resourceKey), [relationships[i]]).data;
+      schema = resourceSchema(
+        resourceType,
+        a[resourceKey],
+        _.omit(a, resourceKey),
+        [c],
+      ).data;
     } else {
-      schema = resourceSchema(resourceType, rawResources[i][resourceKey],
-        _.omit(rawResources[i], resourceKey)).data;
+      schema = resourceSchema(
+        resourceType,
+        a[resourceKey],
+        _.omit(a, resourceKey),
+      ).data;
     }
-    expect(serializedResources.data[i]).to.deep.equal(schema);
-  }
+    expect(b).to.deep.equal(schema);
+  });
 };
-
 
 module.exports = {
   createConnStub,
