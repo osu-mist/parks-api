@@ -8,15 +8,18 @@
     "basic_auth": {
       "username": "username",
       "password": "password"
-    },
-    "oauth2": {
-      "token_api_url": "https://api.oregonstate.edu/oauth2/token",
-      "client_id": "client_id",
-      "client_secret": "client_secret"
     }
   },
   "test_cases": {
-    "valid_pet_ids": ["1", "2", "3"],
-    "invalid_pet_ids": ["999", "-1", "invalid_id"]
+    "valid_park_ids": ["3", "22", "241"],
+    "invalid_park_ids": ["999", "-1", "invalid_id"],
+    "valid_amenities": ["dogsAllowed,hikingTrails,naturalArea", "dogsAllowed", "scenicViewPoint,restrooms"],
+    "invalid_amenities": ["DOGSALLOWED,HIKINGTRAILS", "dogsAllowed, hikingTrails"],
+    "valid_cities": ["Corvallis", "Dallas", "Pocatello"],
+    "invalid_cities": ["Atlantis", "3", " "],
+    "valid_zips": [97333, 66666, 42069],
+    "invalid_zips": [-321, 3, 1337],
+    "valid_states": ["OR", "ID", "CA", "PA"],
+    "invalid_states": ["Oregon", "Idaho", "or"]
   }
 }

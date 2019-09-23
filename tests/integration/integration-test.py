@@ -34,73 +34,98 @@ class integration_tests(unittest.TestCase):
     def cleanup(cls):
         cls.session.close()
 
-    # Test case: GET /pets
-    def test_get_all_pets(self, endpoint='/pets'):
-        nullable_fields = ['owner']
-        utils.test_endpoint(self, endpoint, 'PetResource', 200,
-                            nullable_fields=nullable_fields)
+    # Test GET /parks
+    def test_get_all_parks(self, endpoint='/parks'):
+        utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+                            nullable_fields=[])
+        valid_amenities = self.test_cases['valid_amenities']
+        invalid_amenities = self.test_cases['invalid_amenities']
 
-    # Test case: GET /pets with species filter
-    def test_get_pets_with_filter(self, endpoint='/pets'):
-        testing_species = ['dog', 'CAT', 'tUrTlE']
-
-        for species in testing_species:
-            params = {'species': species}
-            response = utils.test_endpoint(self, endpoint, 'PetResource', 200,
+        # Test filter[amenities][all]
+        for amenities in valid_amenities:
+            params = {'filter[amenities][all]': amenities}
+            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
                                            query_params=params)
-
             response_data = response.json()['data']
             for resource in response_data:
-                actual_species = resource['attributes']['species']
-                self.assertEqual(actual_species.lower(), species.lower())
+                actual_amenities = resource['attributes']['amenities']
+                for amenity in amenities.split(','):
+                    self.assertIn(amenity, actual_amenities)
+        for amenities in invalid_amenities:
+            params = {'filter[amenities][all]': amenities}
+            response = utils.test_endpoint(self, endpoint, 'ErrorObject', 400,
+                                           query_params=params)
 
-    # Test case: GET /pets with pagination parameters
-    def test_get_pets_pagination(self, endpoint='/pets'):
-        testing_paginations = [
-            {'number': 1, 'size': 25, 'expected_status_code': 200},
-            {'number': 1, 'size': None, 'expected_status_code': 200},
-            {'number': None, 'size': 25, 'expected_status_code': 200},
-            {'number': 999, 'size': 1, 'expected_status_code': 200},
-            {'number': -1, 'size': 25, 'expected_status_code': 400},
-            {'number': 1, 'size': -1, 'expected_status_code': 400},
-            {'number': 1, 'size': 501, 'expected_status_code': 400}
-        ]
-        nullable_fields = ['owner']
-        for pagination in testing_paginations:
-            params = {f'page[{k}]': pagination[k] for k in ['number', 'size']}
-            expected_status_code = pagination['expected_status_code']
-            resource = (
-                'PetResource' if expected_status_code == 200
-                else 'ErrorObject'
-            )
-            response = utils.test_endpoint(self, endpoint, resource,
-                                           expected_status_code,
-                                           query_params=params,
-                                           nullable_fields=nullable_fields)
-            content = utils.get_json_content(self, response)
-            if expected_status_code == 200:
-                try:
-                    meta = content['meta']
-                    num = pagination['number'] if pagination['number'] else 1
-                    size = pagination['size'] if pagination['size'] else 25
+        # Test filter[amenities][some]
+        for amenities in valid_amenities:
+            amen_list = amenities.split(',')
+            params = {'filter[amenities][some]': amenities}
+            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+                                           query_params=params)
+            response_data = response.json()['data']
+            for resource in response_data:
+                actual_amenities = resource['attributes']['amenities']
+                self.assertTrue(
+                    # asserts if at least one item in amen_list is also in
+                    # actual_amenities
+                    any(True for x in actual_amenities if x in amen_list)
+                )
+        for amenities in invalid_amenities:
+            params = {'filter[amenities][all]': amenities}
+            response = utils.test_endpoint(self, endpoint, 'ErrorObject', 400,
+                                           query_params=params)
 
-                    self.assertEqual(num, meta['currentPageNumber'])
-                    self.assertEqual(size, meta['currentPageSize'])
-                except KeyError as error:
-                    self.fail(error)
+        # Test filter[city]
+        valid_cities = self.test_cases['valid_cities']
+        invalid_cities = self.test_cases['invalid_cities']
+        for city in valid_cities:
+            params = {'filter[city]': city}
+            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+                                           query_params=params)
+            response_data = response.json()['data']
+            for resource in response_data:
+                actual_city = resource['attributes']['location']['city']
+                self.assertEqual(actual_city, city)
+        for city in invalid_cities:
+            params = {'filter[city]': city}
+            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+                                           query_params=params)
+            response_data = response.json()['data']
+            self.assertFalse(response_data)
 
-    # Test case: GET /pets/{id}
-    def test_get_pet_by_id(self, endpoint='/pets'):
-        valid_pet_ids = self.test_cases['valid_pet_ids']
-        invalid_pet_ids = self.test_cases['invalid_pet_ids']
+        # Test filter[zip]
+        valid_zips = self.test_cases['valid_zips']
+        invalid_zips = self.test_cases['invalid_zips']
+        for zip_code in valid_zips:
+            params = {'filter[zip]': zip_code}
+            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+                                           query_params=params)
+            response_data = response.json()['data']
+            for resource in response_data:
+                actual_zip = resource['attributes']['location']['zip']
+                self.assertEqual(actual_zip, zip_code)
+        for zip_code in invalid_zips:
+            params = {'filter[zip]': zip_code}
+            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+                                           query_params=params)
+            response_data = response.json()['data']
+            self.assertFalse(response_data)
 
-        for pet_id in valid_pet_ids:
-            resource = 'PetResource'
-            utils.test_endpoint(self, f'{endpoint}/{pet_id}', resource, 200)
-
-        for pet_id in invalid_pet_ids:
-            resource = 'ErrorObject'
-            utils.test_endpoint(self, f'{endpoint}/{pet_id}', resource, 404)
+        # Test filter[state]
+        valid_states = self.test_cases['valid_states']
+        invalid_states = self.test_cases['invalid_states']
+        for state in valid_states:
+            params = {'filter[state]': state}
+            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+                                           query_params=params)
+            response_data = response.json()['data']
+            for resource in response_data:
+                actual_state = resource['attributes']['location']['state']
+                self.assertEqual(actual_state, state)
+        for state in invalid_states:
+            params = {'filter[state]': state}
+            response = utils.test_endpoint(self, endpoint, 'ErrorObject', 400,
+                                           query_params=params)
 
 
 if __name__ == '__main__':
