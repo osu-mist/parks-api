@@ -71,8 +71,13 @@ const postAmenitiesSqlHelper = amenities => _.reduce(amenityEnum, (accumulator, 
   return `${returnString},`;
 }, '');
 
-// generates sql query for patchParks
+/**
+ * @summary generates sql query for patchParks given the body
+ * @param {object} body Unique park ID
+ * @returns {string} Patch SQL query
+ */
 const getPatchSqlQuery = (body) => {
+  if (!body || _.isEmpty(body)) return undefined;
   const { attributes, relationships } = body.data;
   let location;
   let amenities;
@@ -239,7 +244,7 @@ const postParks = async (parkBody) => {
   try {
     const rawParks = await connection.execute(sqlQuery, sqlBinds, { autoCommit: true });
     const result = await getParkById(rawParks.outBinds.outId[0]);
-    result.links.self = resourcePathLink(apiBaseUrl, 'parks');
+    if (result.links) result.links.self = resourcePathLink(apiBaseUrl, 'parks');
     return result;
   } finally {
     connection.close();
@@ -304,7 +309,7 @@ const getParksByOwnerId = async (id) => {
     if (ownerTest.rows[0]['COUNT(1)'] === '0') return undefined;
     const { rows } = await connection.execute(sqlQuery, sqlBinds);
     const serializedParks = serializeParks(rows);
-    serializedParks.links.self = `${apiBaseUrl}/owners/${id}/parks`;
+    if (serializedParks.links) serializedParks.links.self = `${apiBaseUrl}/owners/${id}/parks`;
     return serializedParks;
   } finally {
     connection.close();
@@ -318,4 +323,5 @@ module.exports = {
   deleteParkById,
   patchParkById,
   getParksByOwnerId,
+  getPatchSqlQuery,
 };

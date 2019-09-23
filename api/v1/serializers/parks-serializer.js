@@ -26,6 +26,12 @@ const stringsToNumbers = (rawPark) => {
   return rawPark;
 };
 
+/**
+ * @summary Structures raw rows to make a serializable object
+ * @function
+ * @param {object} rawPark Raw data row representing one park
+ * @returns {object} structured park object
+ */
 const structuredPark = (rawPark) => {
   rawPark = stringsToNumbers(rawPark);
   const locationInfo = _.pick(rawPark, ['streetAddress', 'city', 'state', 'zip', 'latitude', 'longitude']);
@@ -42,6 +48,12 @@ const structuredPark = (rawPark) => {
   };
 };
 
+/**
+ * @summary Structures raw rows to make a serializable object
+ * @function
+ * @param {object[]} rawParks Raw data rows representing many parks
+ * @returns {object} structured parks object
+ */
 const structuredParks = rawParks => _.map(rawParks, structuredPark);
 
 /**
@@ -99,4 +111,9 @@ const serializePark = (rawPark) => {
     serializerOptions(serializerArgs),
   ).serialize(structuredPark(rawPark));
 };
-module.exports = { serializeParks, serializePark };
+module.exports = {
+  serializeParks,
+  serializePark,
+  structuredPark,
+  structuredParks,
+};

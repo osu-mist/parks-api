@@ -368,7 +368,7 @@ definitions:
         format: uri
         description: Self-link of current resource
   OwnerResource:
-    required: [id, type, attributes]
+    required: [id, type, links, attributes]
     properties:
       id: &ownerId
         type: string
@@ -379,6 +379,14 @@ definitions:
         type: string
         description: type of object, should be owner
         enum: [owner]
+      links: &resourceSelfLink
+        type: object
+        description: links to resource
+        properties:
+          self:
+            type: string
+            format: uri
+            description: self-link to resource
       attributes: &ownerAttributes
         required: [ownerName]
         properties:
@@ -416,14 +424,7 @@ definitions:
         type: string
         description: type of object, should be park
         enum: [park]
-      links:
-        type: object
-        description: links to resource
-        properties:
-          self:
-            type: string
-            format: uri
-            description: link to the park resource
+      links: *resourceSelfLink
       attributes: &parkAttributes
         required: [name, location, amenities]
         properties:
