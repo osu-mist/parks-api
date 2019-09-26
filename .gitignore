@@ -92,4 +92,4 @@ env.bak/
 venv.bak/
 
 #VScode
-**/.vscode
+.vscode/
