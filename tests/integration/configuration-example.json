@@ -20,6 +20,8 @@
     "valid_zips": [97333, 66666, 42069],
     "invalid_zips": [-321, 3, 1337],
     "valid_states": ["OR", "ID", "CA", "PA"],
-    "invalid_states": ["Oregon", "Idaho", "or"]
+    "invalid_states": ["Oregon", "Idaho", "or"],
+    "valid_owner_ids": ["1", "222", "241"],
+    "invalid_owner_ids": ["-1", "999", "invalid_id"]
   }
 }
