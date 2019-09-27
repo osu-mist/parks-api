@@ -7,6 +7,10 @@ from prance import ResolvingParser
 
 import utils
 
+err_obj = 'ErrorObject'
+park_res = 'ParkResource'
+owner_res = 'OwnerResource'
+
 
 class integration_tests(unittest.TestCase):
     @classmethod
@@ -43,7 +47,7 @@ class integration_tests(unittest.TestCase):
         # Test filter[amenities][all]
         for amenities in valid_amenities:
             params = {'filter[amenities][all]': amenities}
-            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+            response = utils.test_endpoint(self, endpoint, park_res, 200,
                                            query_params=params)
             response_data = response.json()['data']
             for resource in response_data:
@@ -59,7 +63,7 @@ class integration_tests(unittest.TestCase):
         for amenities in valid_amenities:
             amen_list = amenities.split(',')
             params = {'filter[amenities][some]': amenities}
-            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+            response = utils.test_endpoint(self, endpoint, park_res, 200,
                                            query_params=params)
             response_data = response.json()['data']
             for resource in response_data:
@@ -71,7 +75,7 @@ class integration_tests(unittest.TestCase):
                 )
         for amenities in invalid_amenities:
             params = {'filter[amenities][all]': amenities}
-            utils.test_endpoint(self, endpoint, 'ErrorObject', 400,
+            utils.test_endpoint(self, endpoint, err_obj, 400,
                                 query_params=params)
 
         # Test filter[city]
@@ -79,7 +83,7 @@ class integration_tests(unittest.TestCase):
         invalid_cities = self.test_cases['invalid_cities']
         for city in valid_cities:
             params = {'filter[city]': city}
-            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+            response = utils.test_endpoint(self, endpoint, park_res, 200,
                                            query_params=params)
             response_data = response.json()['data']
             for resource in response_data:
@@ -87,7 +91,7 @@ class integration_tests(unittest.TestCase):
                 self.assertEqual(actual_city, city)
         for city in invalid_cities:
             params = {'filter[city]': city}
-            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+            response = utils.test_endpoint(self, endpoint, park_res, 200,
                                            query_params=params)
             response_data = response.json()['data']
             self.assertFalse(response_data)
@@ -97,7 +101,7 @@ class integration_tests(unittest.TestCase):
         invalid_zips = self.test_cases['invalid_zips']
         for zip_code in valid_zips:
             params = {'filter[zip]': zip_code}
-            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+            response = utils.test_endpoint(self, endpoint, park_res, 200,
                                            query_params=params)
             response_data = response.json()['data']
             for resource in response_data:
@@ -105,7 +109,7 @@ class integration_tests(unittest.TestCase):
                 self.assertEqual(actual_zip, zip_code)
         for zip_code in invalid_zips:
             params = {'filter[zip]': zip_code}
-            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+            response = utils.test_endpoint(self, endpoint, park_res, 200,
                                            query_params=params)
             response_data = response.json()['data']
             self.assertFalse(response_data)
@@ -115,7 +119,7 @@ class integration_tests(unittest.TestCase):
         invalid_states = self.test_cases['invalid_states']
         for state in valid_states:
             params = {'filter[state]': state}
-            response = utils.test_endpoint(self, endpoint, 'ParkResource', 200,
+            response = utils.test_endpoint(self, endpoint, park_res, 200,
                                            query_params=params)
             response_data = response.json()['data']
             for resource in response_data:
@@ -131,48 +135,44 @@ class integration_tests(unittest.TestCase):
         valid_park_ids = self.test_cases['valid_park_ids']
         invalid_park_ids = self.test_cases['invalid_park_ids']
         for park_id in valid_park_ids:
-            response = utils.test_endpoint(self, f'/parks/{park_id}',
-                                           'ParkResource', 200)
+            response = utils.test_endpoint(self, f'/parks/{park_id}', park_res,
+                                           200)
             actual_id = response.json()['data']['id']
             self.assertEqual(actual_id, park_id)
         for parkId in invalid_park_ids:
-            response = utils.test_endpoint(self, f'/parks/{parkId}',
-                                           'ErrorObject', 404)
+            utils.test_endpoint(self, f'/parks/{parkId}', err_obj, 404)
 
     # Test GET owners/{ownerId}/parks
     def test_get_park_by_owner_id(self):
         valid_owner_ids = self.test_cases['valid_owner_ids']
         invalid_owner_ids = self.test_cases['invalid_owner_ids']
         for owner_id in valid_owner_ids:
-            response = utils.test_endpoint(self,
-                                           f'/owners/{owner_id}/parks',
+            response = utils.test_endpoint(self, f'/owners/{owner_id}/parks',
                                            'ParkResource', 200)
             response_data = response.json()['data']
             for park in response_data:
-                actual = park['relationships']['owner']['data']['id']
-                self.assertEqual(actual, owner_id)
+                actual_id = park['relationships']['owner']['data']['id']
+                self.assertEqual(actual_id, owner_id)
         for owner_id in invalid_owner_ids:
-            utils.test_endpoint(self, f'/owners/{owner_id}/parks',
-                                'ErrorObject', 404)
+            utils.test_endpoint(self, f'/owners/{owner_id}/parks', err_obj,
+                                404)
 
     # Test GET owners
     def test_get_all_owners(self):
-        utils.test_endpoint(self, '/owners', 'OwnerResource', 200)
+        utils.test_endpoint(self, '/owners', owner_res, 200)
 
     # Test GET owner by ID
     def test_get_owner_by_id(self):
         valid_owner_ids = self.test_cases['valid_owner_ids']
         invalid_owner_ids = self.test_cases['invalid_owner_ids']
         for owner_id in valid_owner_ids:
-            response = utils.test_endpoint(self,
-                                           f'/owners/{owner_id}',
-                                           'OwnerResource', 200)
+            response = utils.test_endpoint(self, f'/owners/{owner_id}',
+                                           owner_res, 200)
             actual_id = response.json()['data']['id']
             self.assertEqual(actual_id, owner_id)
         for owner_id in invalid_owner_ids:
-            response = utils.test_endpoint(self,
-                                           f'/owners/{owner_id}',
-                                           'ErrorObject', 404)
+            response = utils.test_endpoint(self, f'/owners/{owner_id}',
+                                           err_obj, 404)
 
 
 if __name__ == '__main__':
