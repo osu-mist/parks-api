@@ -291,27 +291,27 @@ def test_endpoint(self, endpoint, resource, response_code, query_params=None,
 
 def test_filter_params(self, endpoint, filter_type, valid_tests,
                        invalid_tests):
-    PARK_RES = 'ParkResource'
+    park_res = 'ParkResource'
     for test in valid_tests:
         params = {f'filter[{filter_type}]': test}
-        response = test_endpoint(self, endpoint, PARK_RES, 200,
+        response = test_endpoint(self, endpoint, park_res, 200,
                                  query_params=params)
         response_data = response.json()['data']
         for resource in response_data:
             actual = resource['attributes']['location'][filter_type]
             self.assertEqual(actual, test)
-    if filter_type != 'state':
-        for test in invalid_tests:
-            params = {f'filter[{filter_type}]': test}
-            response = test_endpoint(self, endpoint, PARK_RES, 200,
-                                     query_params=params)
-            response_data = response.json()['data']
-            self.assertFalse(response_data)
-    else:
+    if filter_type == 'state':
         for state in invalid_tests:
             params = {f'filter[{filter_type}]': state}
             test_endpoint(self, endpoint, 'ErrorObject', 400,
                           query_params=params)
+    else:
+        for test in invalid_tests:
+            params = {f'filter[{filter_type}]': test}
+            response = test_endpoint(self, endpoint, park_res, 200,
+                                     query_params=params)
+            response_data = response.json()['data']
+            self.assertFalse(response_data)
 
 
 def test_amenity_filter_params(self, endpoint, filter_type, valid_tests,
@@ -327,7 +327,7 @@ def test_amenity_filter_params(self, endpoint, filter_type, valid_tests,
             if filter_type == 'all':
                 for amenity in amen_list:
                     self.assertIn(amenity, actual_amenities)
-            if filter_type == 'some':
+            elif filter_type == 'some':
                 self.assertTrue(
                     # asserts if at least one item in amen_list is also in
                     # actual_amenities
