@@ -7,6 +7,10 @@ from prance import ResolvingParser
 
 import utils
 
+ERR_OBJ = 'ErrorObject'
+PARK_RES = 'ParkResource'
+OWNER_RES = 'OwnerResource'
+
 
 class integration_tests(unittest.TestCase):
     @classmethod
@@ -34,73 +38,75 @@ class integration_tests(unittest.TestCase):
     def cleanup(cls):
         cls.session.close()
 
-    # Test case: GET /pets
-    def test_get_all_pets(self, endpoint='/pets'):
-        nullable_fields = ['owner']
-        utils.test_endpoint(self, endpoint, 'PetResource', 200,
-                            nullable_fields=nullable_fields)
+    # Test GET /parks
+    def test_get_all_parks(self, endpoint='/parks'):
+        utils.test_endpoint(self, endpoint, 'ParkResource', 200)
 
-    # Test case: GET /pets with species filter
-    def test_get_pets_with_filter(self, endpoint='/pets'):
-        testing_species = ['dog', 'CAT', 'tUrTlE']
+        # Test filter[amenities][all] and filter[amenities][some]
+        valid_amenities = self.test_cases['valid_amenities']
+        invalid_amenities = self.test_cases['invalid_amenities']
+        utils.test_amenity_filter_params(self, endpoint, 'all',
+                                         valid_amenities, invalid_amenities)
+        utils.test_amenity_filter_params(self, endpoint, 'some',
+                                         valid_amenities, invalid_amenities)
 
-        for species in testing_species:
-            params = {'species': species}
-            response = utils.test_endpoint(self, endpoint, 'PetResource', 200,
-                                           query_params=params)
+        # Test filter[city]
+        valid_cities = self.test_cases['valid_cities']
+        invalid_cities = self.test_cases['invalid_cities']
+        utils.test_filter_params(self, endpoint, 'city', valid_cities,
+                                 invalid_cities)
 
+        # Test filter[zip]
+        valid_zips = self.test_cases['valid_zips']
+        invalid_zips = self.test_cases['invalid_zips']
+        utils.test_filter_params(self, endpoint, 'zip', valid_zips,
+                                 invalid_zips)
+
+        # Test filter[state]
+        valid_states = self.test_cases['valid_states']
+        invalid_states = self.test_cases['invalid_states']
+        utils.test_filter_params(self, endpoint, 'state', valid_states,
+                                 invalid_states)
+
+    # Test GET parks/{id}
+    def test_get_park_by_id(self):
+        valid_park_ids = self.test_cases['valid_park_ids']
+        invalid_park_ids = self.test_cases['invalid_park_ids']
+        for park_id in valid_park_ids:
+            response = utils.test_endpoint(self, f'/parks/{park_id}', PARK_RES,
+                                           200)
+            actual_id = response.json()['data']['id']
+            self.assertEqual(actual_id, park_id)
+        for park_id in invalid_park_ids:
+            utils.test_endpoint(self, f'/parks/{park_id}', ERR_OBJ, 404)
+
+    # Test GET owners/{ownerId}/parks
+    def test_get_parks_by_owner_id(self):
+        valid_owner_ids = self.test_cases['valid_owner_ids']
+        for owner_id in valid_owner_ids:
+            response = utils.test_endpoint(self, f'/owners/{owner_id}/parks',
+                                           PARK_RES, 200)
             response_data = response.json()['data']
-            for resource in response_data:
-                actual_species = resource['attributes']['species']
-                self.assertEqual(actual_species.lower(), species.lower())
+            for park in response_data:
+                actual_id = park['relationships']['owner']['data']['id']
+                self.assertEqual(actual_id, owner_id)
 
-    # Test case: GET /pets with pagination parameters
-    def test_get_pets_pagination(self, endpoint='/pets'):
-        testing_paginations = [
-            {'number': 1, 'size': 25, 'expected_status_code': 200},
-            {'number': 1, 'size': None, 'expected_status_code': 200},
-            {'number': None, 'size': 25, 'expected_status_code': 200},
-            {'number': 999, 'size': 1, 'expected_status_code': 200},
-            {'number': -1, 'size': 25, 'expected_status_code': 400},
-            {'number': 1, 'size': -1, 'expected_status_code': 400},
-            {'number': 1, 'size': 501, 'expected_status_code': 400}
-        ]
-        nullable_fields = ['owner']
-        for pagination in testing_paginations:
-            params = {f'page[{k}]': pagination[k] for k in ['number', 'size']}
-            expected_status_code = pagination['expected_status_code']
-            resource = (
-                'PetResource' if expected_status_code == 200
-                else 'ErrorObject'
-            )
-            response = utils.test_endpoint(self, endpoint, resource,
-                                           expected_status_code,
-                                           query_params=params,
-                                           nullable_fields=nullable_fields)
-            content = utils.get_json_content(self, response)
-            if expected_status_code == 200:
-                try:
-                    meta = content['meta']
-                    num = pagination['number'] if pagination['number'] else 1
-                    size = pagination['size'] if pagination['size'] else 25
+    # Test GET owners
+    def test_get_all_owners(self):
+        utils.test_endpoint(self, '/owners', OWNER_RES, 200)
 
-                    self.assertEqual(num, meta['currentPageNumber'])
-                    self.assertEqual(size, meta['currentPageSize'])
-                except KeyError as error:
-                    self.fail(error)
-
-    # Test case: GET /pets/{id}
-    def test_get_pet_by_id(self, endpoint='/pets'):
-        valid_pet_ids = self.test_cases['valid_pet_ids']
-        invalid_pet_ids = self.test_cases['invalid_pet_ids']
-
-        for pet_id in valid_pet_ids:
-            resource = 'PetResource'
-            utils.test_endpoint(self, f'{endpoint}/{pet_id}', resource, 200)
-
-        for pet_id in invalid_pet_ids:
-            resource = 'ErrorObject'
-            utils.test_endpoint(self, f'{endpoint}/{pet_id}', resource, 404)
+    # Test GET owner by ID
+    def test_get_owner_by_id(self):
+        valid_owner_ids = self.test_cases['valid_owner_ids']
+        invalid_owner_ids = self.test_cases['invalid_owner_ids']
+        for owner_id in valid_owner_ids:
+            response = utils.test_endpoint(self, f'/owners/{owner_id}',
+                                           OWNER_RES, 200)
+            actual_id = response.json()['data']['id']
+            self.assertEqual(actual_id, owner_id)
+        for owner_id in invalid_owner_ids:
+            response = utils.test_endpoint(self, f'/owners/{owner_id}',
+                                           ERR_OBJ, 404)
 
 
 if __name__ == '__main__':

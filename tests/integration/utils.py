@@ -289,6 +289,56 @@ def test_endpoint(self, endpoint, resource, response_code, query_params=None,
     return response
 
 
+def test_filter_params(self, endpoint, filter_type, valid_tests,
+                       invalid_tests):
+    park_res = 'ParkResource'
+    for test in valid_tests:
+        params = {f'filter[{filter_type}]': test}
+        response = test_endpoint(self, endpoint, park_res, 200,
+                                 query_params=params)
+        response_data = response.json()['data']
+        for resource in response_data:
+            actual = resource['attributes']['location'][filter_type]
+            self.assertEqual(actual, test)
+    if filter_type == 'state':
+        for state in invalid_tests:
+            params = {f'filter[{filter_type}]': state}
+            test_endpoint(self, endpoint, 'ErrorObject', 400,
+                          query_params=params)
+    else:
+        for test in invalid_tests:
+            params = {f'filter[{filter_type}]': test}
+            response = test_endpoint(self, endpoint, park_res, 200,
+                                     query_params=params)
+            response_data = response.json()['data']
+            self.assertFalse(response_data)
+
+
+def test_amenity_filter_params(self, endpoint, filter_type, valid_tests,
+                               invalid_tests):
+    for amenities in valid_tests:
+        amen_list = amenities.split(',')
+        params = {f'filter[amenities][{filter_type}]': amenities}
+        response = test_endpoint(self, endpoint, 'ParkResource', 200,
+                                 query_params=params)
+        response_data = response.json()['data']
+        for resource in response_data:
+            actual_amenities = resource['attributes']['amenities']
+            if filter_type == 'all':
+                for amenity in amen_list:
+                    self.assertIn(amenity, actual_amenities)
+            elif filter_type == 'some':
+                self.assertTrue(
+                    # asserts if at least one item in amen_list is also in
+                    # actual_amenities
+                    any(True for x in actual_amenities if x in amen_list)
+                )
+    for amenities in invalid_tests:
+        params = {f'filter[amenities][{filter_type}]': amenities}
+        test_endpoint(self, endpoint, 'ErrorObject', 400,
+                      query_params=params)
+
+
 class assertion_tests(unittest.TestCase):
     # Helper function to check if a response value starts with the test value
     def actual_starts_with_test(self, actual_case, test_case):
